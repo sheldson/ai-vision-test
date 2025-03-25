@@ -1,0 +1,3198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI视觉能力分级标准化测试工具</title>
+  <style>
+    :root {
+      --primary-color: #2c3e50;
+      --primary-light: #34495e;
+      --secondary-color: #3498db;
+      --secondary-light: #5faee3;
+      --success-color: #2ecc71;
+      --warning-color: #f39c12;
+      --danger-color: #e74c3c;
+      --purple-color: #9b59b6;
+      --light-color: #ecf0f1;
+      --dark-color: #2c3e50;
+      --gray-color: #95a5a6;
+      --light-gray: #f5f5f5;
+      
+      --l1-color: #3498db;
+      --l2-color: #2ecc71;
+      --l3-color: #9b59b6;
+      
+      --perception-color: #3498db;
+      --social-color: #e74c3c;
+      --memory-color: #f39c12;
+      --temporal-color: #2ecc71;
+      --cognitive-color: #9b59b6;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      line-height: 1.6;
+      color: var(--dark-color);
+      background-color: #f7f9fc;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      font-size: 28px;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+    
+    h2 {
+      font-size: 22px;
+      color: var(--primary-color);
+      margin: 20px 0 15px;
+    }
+    
+    h3 {
+      font-size: 18px;
+      color: var(--primary-color);
+      margin: 15px 0 10px;
+    }
+    
+    p {
+      margin-bottom: 15px;
+    }
+    
+    /* 导航和选项卡 */
+    .nav-tabs {
+      display: flex;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    
+    .nav-tab {
+      flex: 1;
+      text-align: center;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .nav-tab:hover {
+      opacity: 0.9;
+    }
+    
+    .nav-tab.active {
+      box-shadow: inset 0 -5px 0 rgba(255, 255, 255, 0.3);
+    }
+    
+    .l1-tab { background-color: var(--l1-color); }
+    .l2-tab { background-color: var(--l2-color); }
+    .l3-tab { background-color: var(--l3-color); }
+    .results-tab { background-color: var(--primary-color); }
+    
+    /* 测试卡片设计 */
+    .test-cards {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .test-cards.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    
+    .dimension-header {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-radius: 8px;
+      color: white;
+      margin: 25px 0 15px;
+    }
+    
+    .dimension-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      margin-right: 15px;
+    }
+    
+    .dimension-title {
+      margin: 0;
+      font-size: 18px;
+    }
+    
+    .perception-header { background-color: var(--perception-color); }
+    .social-header { background-color: var(--social-color); }
+    .memory-header { background-color: var(--memory-color); }
+    .temporal-header { background-color: var(--temporal-color); }
+    .cognitive-header { background-color: var(--cognitive-color); }
+    
+    .test-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #f1f1f1;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    .card-header:hover {
+      background-color: #f1f2f6;
+    }
+    
+    .card-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .expand-icon {
+      transition: transform 0.3s ease;
+    }
+    
+    .expanded .expand-icon {
+      transform: rotate(180deg);
+    }
+    
+    .card-content {
+      display: none;
+      padding: 20px;
+    }
+    
+    .expanded .card-content {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      0% { opacity: 0; max-height: 0; }
+      100% { opacity: 1; max-height: 1000px; }
+    }
+    
+    .test-info {
+      margin-bottom: 20px;
+    }
+    
+    .info-row {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    
+    .info-label {
+      flex: 0 0 120px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .info-value {
+      flex: 1;
+    }
+    
+    .test-materials,
+    .test-steps {
+      margin-bottom: 20px;
+    }
+    
+    .materials-title,
+    .steps-title,
+    .scoring-title,
+    .notes-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: var(--primary-color);
+    }
+    
+    ul.materials-list,
+    ol.steps-list {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+    
+    ul.materials-list li,
+    ol.steps-list li {
+      margin-bottom: 5px;
+    }
+    
+    .scoring-criteria {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    
+    .score-row {
+      display: flex;
+      margin-bottom: 5px;
+    }
+    
+    .score-label {
+      flex: 0 0 20px;
+      font-weight: bold;
+    }
+    
+    .score-desc {
+      flex: 1;
+    }
+    
+    .test-result {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #f1f1f1;
+    }
+    
+    .rating-group {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+    
+    .rating-option {
+      margin-right: 15px;
+      margin-bottom: 10px;
+    }
+    
+    .rating-option input[type="radio"] {
+      display: none;
+    }
+    
+    .rating-option label {
+      display: block;
+      width: 40px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      background-color: #f1f2f6;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .rating-option input[type="radio"]:checked + label {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+    
+    textarea.observation-notes {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      resize: vertical;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    
+    /* 结果页面样式 */
+    .results-section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .results-section.active {
+      display: block;
+    }
+    
+    .tester-info {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .info-field {
+      margin-bottom: 15px;
+    }
+    
+    .info-field label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .info-field input[type="text"],
+    .info-field input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: inherit;
+    }
+    
+    .scores-panel {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .table-responsive {
+      overflow-x: auto;
+    }
+    
+    table.scores-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    
+    table.scores-table th,
+    table.scores-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #f1f1f1;
+    }
+    
+    table.scores-table th {
+      background-color: #f8f9fa;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    table.scores-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    table.scores-table .dimension-name {
+      font-weight: bold;
+    }
+    
+    table.scores-table .average-row {
+      background-color: #f8f9fa;
+    }
+    
+    .average-row td {
+      font-weight: bold;
+    }
+    
+    .chart-container {
+      width: 100%;
+      height: 400px;
+      margin: 30px 0;
+    }
+    
+    .level-assessment {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .assessment-result {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .assessment-option {
+      flex: 1 0 200px;
+    }
+    
+    .assessment-option input[type="radio"] {
+      display: none;
+    }
+    
+    .assessment-option label {
+      display: block;
+      padding: 15px;
+      text-align: center;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .assessment-option input[type="radio"]:checked + label {
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .assessment-field {
+      margin-bottom: 15px;
+    }
+    
+    .assessment-field label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    
+    .assessment-field textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    
+    .action-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
+    
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background-color: var(--secondary-color);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--secondary-light);
+    }
+    
+    .btn-success {
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: #27ae60;
+    }
+    
+    .btn-export {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-export:hover {
+      background-color: var(--primary-light);
+    }
+    
+    /* 工具提示样式 */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+    }
+    
+    .tooltip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      background-color: var(--gray-color);
+      color: white;
+      border-radius: 50%;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 14px;
+      font-weight: normal;
+    }
+    
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+      .nav-tab {
+        padding: 12px 5px;
+        font-size: 14px;
+      }
+      
+      .card-header {
+        padding: 12px 15px;
+      }
+      
+      .card-title {
+        font-size: 15px;
+      }
+      
+      .info-row {
+        flex-direction: column;
+      }
+      
+      .info-label {
+        margin-bottom: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>AI视觉能力分级标准化测试工具</h1>
+      <p>使用此工具评估AI毛绒玩具产品的视觉能力水平</p>
+    </header>
+    
+    <!-- 导航选项卡 -->
+    <div class="nav-tabs">
+      <div class="nav-tab l1-tab active" onclick="switchTab('l1')">L1 基础级</div>
+      <div class="nav-tab l2-tab" onclick="switchTab('l2')">L2 进阶级</div>
+      <div class="nav-tab l3-tab" onclick="switchTab('l3')">L3 高级</div>
+      <div class="nav-tab results-tab" onclick="switchTab('results')">测试结果</div>
+    </div>
+    
+    <!-- L1 基础级测试卡片 -->
+    <div id="l1-cards" class="test-cards active">
+      <h2>L1 基础级测试</h2>
+      <p>评估AI玩偶的基本视觉识别和自然对话融合能力。请依次完成各项测试。</p>
+      
+      <!-- 感知维度 -->
+      <div class="dimension-header perception-header">
+        <div class="dimension-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 12C2 12 5 5 12 5C19 5 22 12 22 12C22 12 19 19 12 19C5 19 2 12 2 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="dimension-title">感知维度</h3>
+      </div>
+      
+      <!-- L1-P-01 测试卡片 -->
+      <div class="test-card" id="L1-P-01">
+        <div class="card-header" onclick="toggleCard('L1-P-01')">
+          <h4 class="card-title">L1-P-01: 基础物品识别</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L1 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶识别常见物品的基本能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>5-8种不同类别的常见物品（书籍、玩具、文具、食物模型等）</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>准备测试物品，确保玩偶视野良好</li>
+              <li>逐一向玩偶展示物品，每次询问"这是什么？"</li>
+              <li>记录玩偶对每个物品的识别结果</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法识别大多数物品(0-20%正确率)</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">能识别部分物品但错误率高(21-50%正确率)</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能正确识别大部分物品(51-80%正确率)</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">几乎能识别所有物品(81-95%正确率)</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">完美识别所有物品且描述准确(96-100%正确率)</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>是否能识别不同类别的物品</li>
+              <li>识别速度和准确性</li>
+              <li>对不确定物品的处理方式</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L1-P-01-score-1" name="L1-P-01-score" value="1">
+                <label for="L1-P-01-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-01-score-2" name="L1-P-01-score" value="2">
+                <label for="L1-P-01-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-01-score-3" name="L1-P-01-score" value="3">
+                <label for="L1-P-01-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-01-score-4" name="L1-P-01-score" value="4">
+                <label for="L1-P-01-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-01-score-5" name="L1-P-01-score" value="5">
+                <label for="L1-P-01-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L1-P-01-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L1-P-02 测试卡片 -->
+      <div class="test-card" id="L1-P-02">
+        <div class="card-header" onclick="toggleCard('L1-P-02')">
+          <h4 class="card-title">L1-P-02: 物品特征识别</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L1 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶识别物品基本特征的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>具有明显颜色、形状和尺寸特征的物品</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示具有明显特征的物品</li>
+              <li>询问物品的颜色、形状和尺寸特征</li>
+              <li>比较物品展示不同特征（"哪个更大？""哪个是红色的？"）</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法识别任何物品特征</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">仅能识别最基本的颜色或形状，描述不准确</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能正确识别基本特征但描述简单</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能准确描述多种特征并进行比较</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能详细描述特征并用丰富词汇表达微妙差异</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>颜色识别准确性</li>
+              <li>形状和尺寸描述的精确度</li>
+              <li>比较多个物品特征的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L1-P-02-score-1" name="L1-P-02-score" value="1">
+                <label for="L1-P-02-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-02-score-2" name="L1-P-02-score" value="2">
+                <label for="L1-P-02-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-02-score-3" name="L1-P-02-score" value="3">
+                <label for="L1-P-02-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-02-score-4" name="L1-P-02-score" value="4">
+                <label for="L1-P-02-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-02-score-5" name="L1-P-02-score" value="5">
+                <label for="L1-P-02-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L1-P-02-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L1-P-03 测试卡片 -->
+      <div class="test-card" id="L1-P-03">
+        <div class="card-header" onclick="toggleCard('L1-P-03')">
+          <h4 class="card-title">L1-P-03: 人物存在感知</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L1 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶检测人物存在/缺席的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>空旷且光线良好的测试环境</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>让测试人员离开玩偶视野范围</li>
+              <li>记录玩偶状态</li>
+              <li>让测试人员进入视野范围，保持静止10秒</li>
+              <li>记录玩偶反应</li>
+              <li>人员再次离开视野，记录反应</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法区分人员存在或缺席</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">偶尔能检测到明显的人员进入但反应不稳定</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能基本检测人员的存在/缺席但有短暂延迟</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能迅速稳定地检测人员存在/缺席并有相应反应</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能立即精确检测人员存在/缺席，并根据情境作出适当反应</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>检测速度和准确性</li>
+              <li>对人员进入/离开的不同反应</li>
+              <li>在边缘情况下的表现（部分遮挡、距离远等）</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L1-P-03-score-1" name="L1-P-03-score" value="1">
+                <label for="L1-P-03-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-03-score-2" name="L1-P-03-score" value="2">
+                <label for="L1-P-03-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-03-score-3" name="L1-P-03-score" value="3">
+                <label for="L1-P-03-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-03-score-4" name="L1-P-03-score" value="4">
+                <label for="L1-P-03-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-03-score-5" name="L1-P-03-score" value="5">
+                <label for="L1-P-03-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L1-P-03-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L1-P-04 测试卡片 -->
+      <div class="test-card" id="L1-P-04">
+        <div class="card-header" onclick="toggleCard('L1-P-04')">
+          <h4 class="card-title">L1-P-04: 注视识别测试</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L1 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶识别被注视状态的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>无特殊要求，确保环境光线充足</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>测试人员背对或侧对玩偶，记录反应</li>
+              <li>转向直视玩偶10秒，记录反应</li>
+              <li>转向看其他方向，记录反应</li>
+              <li>再次直视玩偶，记录反应</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法区分是否被注视</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">偶尔能识别出被直接注视但不稳定</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能基本区分被注视和未被注视状态</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能稳定识别被注视状态并进入对话待机状态</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能精确识别不同程度的注视，包括边缘情况，并做出相应状态调整</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>注视检测的准确性和一致性</li>
+              <li>状态切换的及时性</li>
+              <li>对不同人不同距离注视的响应</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L1-P-04-score-1" name="L1-P-04-score" value="1">
+                <label for="L1-P-04-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-04-score-2" name="L1-P-04-score" value="2">
+                <label for="L1-P-04-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-04-score-3" name="L1-P-04-score" value="3">
+                <label for="L1-P-04-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-04-score-4" name="L1-P-04-score" value="4">
+                <label for="L1-P-04-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-P-04-score-5" name="L1-P-04-score" value="5">
+                <label for="L1-P-04-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L1-P-04-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 社交维度 -->
+      <div class="dimension-header social-header">
+        <div class="dimension-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="dimension-title">社交维度</h3>
+      </div>
+      
+      <!-- L1-S-01 测试卡片 -->
+      <div class="test-card" id="L1-S-01">
+        <div class="card-header" onclick="toggleCard('L1-S-01')">
+          <h4 class="card-title">L1-S-01: 明确视觉请求响应</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L1 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶对明确视觉请求的响应能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>3-5个不同的物品，摆放在玩偶视野范围内</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>确保所有物品在玩偶视野范围内</li>
+              <li>明确询问关于特定物品的问题（"你能看到那个红色的杯子吗？"）</li>
+              <li>记录玩偶是否能正确识别并回应关于物品的问题</li>
+              <li>重复几次不同物品的测试</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法响应任何视觉请求</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">偶尔能响应简单请求但错误率高</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能响应大部分明确请求但有时需要重复</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能准确响应几乎所有明确请求</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能完美响应所有明确请求并提供额外相关信息</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>响应的准确性和相关性</li>
+              <li>响应速度</li>
+              <li>处理模糊或复杂请求的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L1-S-01-score-1" name="L1-S-01-score" value="1">
+                <label for="L1-S-01-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-01-score-2" name="L1-S-01-score" value="2">
+                <label for="L1-S-01-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-01-score-3" name="L1-S-01-score" value="3">
+                <label for="L1-S-01-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-01-score-4" name="L1-S-01-score" value="4">
+                <label for="L1-S-01-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-01-score-5" name="L1-S-01-score" value="5">
+                <label for="L1-S-01-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L1-S-01-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L1-S-02 测试卡片 -->
+      <div class="test-card" id="L1-S-02">
+        <div class="card-header" onclick="toggleCard('L1-S-02')">
+          <h4 class="card-title">L1-S-02: 上下文视觉引用</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L1 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶在对话中引用视觉信息的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>2-3个不同的物品，放在玩偶视野中</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>与玩偶进行一般性对话，不直接提及视野中的物品</li>
+              <li>间接引导话题至可能涉及视野中物品的方向</li>
+              <li>观察玩偶是否能在对话中自然引用视野中的物品</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">从不在对话中引用视觉信息</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">极少引用视觉信息，且方式生硬</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">有时能在对话中引用视觉信息</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">经常能自然地引用视觉信息丰富对话</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能在各种对话中自然、适时地引用视觉信息，显著增强交流质量</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>引用视觉信息的频率</li>
+              <li>引用的自然程度和相关性</li>
+              <li>是否能增强对话体验</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L1-S-02-score-1" name="L1-S-02-score" value="1">
+                <label for="L1-S-02-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-02-score-2" name="L1-S-02-score" value="2">
+                <label for="L1-S-02-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-02-score-3" name="L1-S-02-score" value="3">
+                <label for="L1-S-02-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-02-score-4" name="L1-S-02-score" value="4">
+                <label for="L1-S-02-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-02-score-5" name="L1-S-02-score" value="5">
+                <label for="L1-S-02-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L1-S-02-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L1-S-03 测试卡片 -->
+      <div class="test-card" id="L1-S-03">
+        <div class="card-header" onclick="toggleCard('L1-S-03')">
+          <h4 class="card-title">L1-S-03: 自然融入评估</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L1 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶将视觉能力自然融入对话的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>日常环境中的多种物品</li>
+              <li>自然对话场景</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>与玩偶进行5-10分钟的自然对话</li>
+              <li>对话内容应涵盖多个话题，不特意引导至视觉内容</li>
+              <li>观察玩偶如何在对话中融入视觉信息</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">视觉能力与对话完全割裂</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">视觉能力融入生硬，感觉刻意或不自然</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">视觉能力能基本融入对话但偶有生硬</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">视觉能力自然融入对话，增强交流体验</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">视觉能力完美融入对话，显著提升互动质量，如同人类般自然</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>视觉信息融入的自然度</li>
+              <li>是否增强了对话体验</li>
+              <li>视觉能力的使用是否适时适度</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L1-S-03-score-1" name="L1-S-03-score" value="1">
+                <label for="L1-S-03-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-03-score-2" name="L1-S-03-score" value="2">
+                <label for="L1-S-03-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-03-score-3" name="L1-S-03-score" value="3">
+                <label for="L1-S-03-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-03-score-4" name="L1-S-03-score" value="4">
+                <label for="L1-S-03-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L1-S-03-score-5" name="L1-S-03-score" value="5">
+                <label for="L1-S-03-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L1-S-03-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <!-- L2 进阶级测试卡片 (只显示部分示例，完整版本可复制L1模式) -->
+    <div id="l2-cards" class="test-cards">
+      <h2>L2 进阶级测试</h2>
+      <p>评估AI玩偶的细节观察、表情理解和基础记忆能力。请依次完成各项测试。</p>
+      
+      <!-- 感知维度 -->
+      <div class="dimension-header perception-header">
+        <div class="dimension-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 12C2 12 5 5 12 5C19 5 22 12 22 12C22 12 19 19 12 19C5 19 2 12 2 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="dimension-title">感知维度</h3>
+      </div>
+      
+      <!-- L2-P-01 测试卡片示例 -->
+      <div class="test-card" id="L2-P-01">
+        <div class="card-header" onclick="toggleCard('L2-P-01')">
+          <h4 class="card-title">L2-P-01: 文字内容识别</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L2 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶识别和理解文字内容的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>含有不同字体和大小文字的卡片、书籍或文档</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示包含文字的材料</li>
+              <li>询问"这上面写了什么？"</li>
+              <li>展示不同难度的文本（从简单单词到段落）</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法识别任何文字</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">仅能识别简单、大号、清晰的文字</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能识别标准字体和大小的基本文字内容</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能准确识别多种字体和大小的文字内容</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能识别各种字体、大小、布局的文字，包括部分手写内容</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>识别不同字体和大小的能力</li>
+              <li>处理段落和复杂排版的能力</li>
+              <li>理解文字内容含义的程度</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L2-P-01-score-1" name="L2-P-01-score" value="1">
+                <label for="L2-P-01-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-01-score-2" name="L2-P-01-score" value="2">
+                <label for="L2-P-01-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-01-score-3" name="L2-P-01-score" value="3">
+                <label for="L2-P-01-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-01-score-4" name="L2-P-01-score" value="4">
+                <label for="L2-P-01-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-01-score-5" name="L2-P-01-score" value="5">
+                <label for="L2-P-01-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L2-P-01-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L2-P-02 测试卡片 -->
+      <div class="test-card" id="L2-P-02">
+        <div class="card-header" onclick="toggleCard('L2-P-02')">
+          <h4 class="card-title">L2-P-02: 绘画细节识别</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L2 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶识别绘画细节的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>包含多种元素的绘画作品（儿童画或简单插图）</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示绘画作品</li>
+              <li>询问"你能看到这幅画中有什么？"</li>
+              <li>记录玩偶识别出的元素数量和准确性</li>
+              <li>询问特定细节"你能找到画中的[特定元素]吗？"</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法识别绘画中的任何元素</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">仅能识别最主要、最明显的元素</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能识别多个主要元素但忽略细节</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能识别大部分元素包括一些细节</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能全面识别绘画中的元素和细节，包括颜色、位置关系等</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>识别元素的数量和准确性</li>
+              <li>识别细节的能力</li>
+              <li>描述元素间关系的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L2-P-02-score-1" name="L2-P-02-score" value="1">
+                <label for="L2-P-02-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-02-score-2" name="L2-P-02-score" value="2">
+                <label for="L2-P-02-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-02-score-3" name="L2-P-02-score" value="3">
+                <label for="L2-P-02-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-02-score-4" name="L2-P-02-score" value="4">
+                <label for="L2-P-02-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-02-score-5" name="L2-P-02-score" value="5">
+                <label for="L2-P-02-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L2-P-02-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L2-P-03 测试卡片 -->
+      <div class="test-card" id="L2-P-03">
+        <div class="card-header" onclick="toggleCard('L2-P-03')">
+          <h4 class="card-title">L2-P-03: 物品细节区分</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L2 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶区分相似物品细节的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>2-3组相似但有细微差别的物品（如不同品牌的水瓶、不同款式的笔等）</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>同时展示一组相似物品</li>
+              <li>询问"这些物品有什么不同？"</li>
+              <li>记录玩偶能否识别出细微差别</li>
+              <li>询问特定区别"你能告诉我哪个[特定特征]？"</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法区分任何相似物品的差异</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">仅能区分最明显的差异（如颜色）</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能区分多个明显特征但忽略细微差别</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能区分大部分差异包括一些细节</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能精确区分所有差异，包括细微的设计、材质和功能差别</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>区分细节的精确度</li>
+              <li>描述差异的全面性</li>
+              <li>在混淆情况下的表现</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L2-P-03-score-1" name="L2-P-03-score" value="1">
+                <label for="L2-P-03-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-03-score-2" name="L2-P-03-score" value="2">
+                <label for="L2-P-03-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-03-score-3" name="L2-P-03-score" value="3">
+                <label for="L2-P-03-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-03-score-4" name="L2-P-03-score" value="4">
+                <label for="L2-P-03-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-03-score-5" name="L2-P-03-score" value="5">
+                <label for="L2-P-03-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L2-P-03-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L2-P-04 测试卡片 -->
+      <div class="test-card" id="L2-P-04">
+        <div class="card-header" onclick="toggleCard('L2-P-04')">
+          <h4 class="card-title">L2-P-04: 环境类型识别</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L2 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶识别所处环境类型的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>不同类型的环境（如客厅、厨房、办公室等）或环境照片</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>将玩偶放置在特定环境中或展示环境照片</li>
+              <li>询问"你能描述一下我们现在在什么地方吗？"</li>
+              <li>记录玩偶对环境类型的识别准确性</li>
+              <li>询问环境中的特定元素</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法识别所处环境类型</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">能粗略识别环境但描述不准确</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能正确识别环境类型但描述简单</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能准确描述环境并指出多个特征</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能精确识别环境类型，详细描述环境特征和功能</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>环境类型识别的准确性</li>
+              <li>环境特征描述的全面性</li>
+              <li>识别环境功能的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L2-P-04-score-1" name="L2-P-04-score" value="1">
+                <label for="L2-P-04-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-04-score-2" name="L2-P-04-score" value="2">
+                <label for="L2-P-04-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-04-score-3" name="L2-P-04-score" value="3">
+                <label for="L2-P-04-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-04-score-4" name="L2-P-04-score" value="4">
+                <label for="L2-P-04-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-P-04-score-5" name="L2-P-04-score" value="5">
+                <label for="L2-P-04-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L2-P-04-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 此处可添加更多L2测试卡片 -->
+      
+      <!-- L2-S-01 测试卡片 -->
+      <div class="test-card" id="L2-S-01">
+        <div class="card-header" onclick="toggleCard('L2-S-01')">
+          <h4 class="card-title">L2-S-01: 视觉情境理解</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L2 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶理解视觉社交情境的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>包含社交互动场景的图片（如人们交谈、聚会等）</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示社交场景图片</li>
+              <li>询问"你能描述一下这张图片中发生了什么？"</li>
+              <li>进一步询问"你认为图中的人在做什么？他们的关系可能是什么？"</li>
+              <li>记录玩偶对社交情境的理解程度</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法理解图片中的社交情境，只能识别基本物体</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">能识别人物但无法理解互动关系</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能基本理解社交情境但缺乏深度解读</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能较好理解社交情境并推测人物关系</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能深入理解社交情境，准确解读人物关系和情感状态</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>社交情境理解的准确性</li>
+              <li>人物关系推测的合理性</li>
+              <li>情感状态识别的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L2-S-01-score-1" name="L2-S-01-score" value="1">
+                <label for="L2-S-01-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-01-score-2" name="L2-S-01-score" value="2">
+                <label for="L2-S-01-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-01-score-3" name="L2-S-01-score" value="3">
+                <label for="L2-S-01-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-01-score-4" name="L2-S-01-score" value="4">
+                <label for="L2-S-01-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-01-score-5" name="L2-S-01-score" value="5">
+                <label for="L2-S-01-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L2-S-01-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L2-S-02 测试卡片 -->
+      <div class="test-card" id="L2-S-02">
+        <div class="card-header" onclick="toggleCard('L2-S-02')">
+          <h4 class="card-title">L2-S-02: 情绪识别与回应</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L2 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶识别人类情绪并适当回应的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>展示不同情绪的图片或视频</li>
+              <li>或测试者表演不同情绪状态</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示不同情绪表现（如开心、悲伤、生气等）</li>
+              <li>询问"你觉得我/图中的人现在是什么心情？"</li>
+              <li>观察玩偶是否能识别情绪并给予适当回应</li>
+              <li>测试多种不同情绪状态</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法识别任何情绪状态</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">仅能识别最明显的情绪（如极度开心或悲伤）</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能识别基本情绪但回应生硬或不自然</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能准确识别多种情绪并给予适当回应</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能精确识别细微情绪变化，回应自然得体，表现出高度情感智能</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>情绪识别的准确性</li>
+              <li>回应的适当性和自然度</li>
+              <li>识别细微情绪变化的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L2-S-02-score-1" name="L2-S-02-score" value="1">
+                <label for="L2-S-02-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-02-score-2" name="L2-S-02-score" value="2">
+                <label for="L2-S-02-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-02-score-3" name="L2-S-02-score" value="3">
+                <label for="L2-S-02-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-02-score-4" name="L2-S-02-score" value="4">
+                <label for="L2-S-02-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-02-score-5" name="L2-S-02-score" value="5">
+                <label for="L2-S-02-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L2-S-02-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L2-S-03 测试卡片 -->
+      <div class="test-card" id="L2-S-03">
+        <div class="card-header" onclick="toggleCard('L2-S-03')">
+          <h4 class="card-title">L2-S-03: 视觉引导对话</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L2 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶基于视觉信息主动引导对话的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>有趣或特别的物品（如艺术品、特殊工具、独特装饰等）</li>
+              <li>或特殊环境设置</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>在玩偶视野范围内放置有趣物品，但不直接提及</li>
+              <li>与玩偶进行一般性对话，观察其是否主动引导话题至视觉元素</li>
+              <li>若5分钟内未主动引导，可提示"你注意到周围有什么特别的吗？"</li>
+              <li>评估玩偶引导对话的自然度和相关性</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">完全不会主动引导对话至视觉元素</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">仅在明确提示后才会简单提及视觉元素</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能主动但生硬地引导对话至视觉元素</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能自然地引导对话至视觉元素并维持相关讨论</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能巧妙自然地引导对话至视觉元素，创造丰富有趣的互动体验</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>主动引导的频率和时机</li>
+              <li>引导的自然度和相关性</li>
+              <li>维持视觉相关对话的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L2-S-03-score-1" name="L2-S-03-score" value="1">
+                <label for="L2-S-03-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-03-score-2" name="L2-S-03-score" value="2">
+                <label for="L2-S-03-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-03-score-3" name="L2-S-03-score" value="3">
+                <label for="L2-S-03-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-03-score-4" name="L2-S-03-score" value="4">
+                <label for="L2-S-03-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L2-S-03-score-5" name="L2-S-03-score" value="5">
+                <label for="L2-S-03-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L2-S-03-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- L3 高级测试卡片 (只显示部分示例，完整版本可复制L1模式) -->
+    <div id="l3-cards" class="test-cards">
+      <h2>L3 高级测试</h2>
+      <p>评估AI玩偶的状态变化感知、意图推断和主动对话能力。请依次完成各项测试。</p>
+      
+      <!-- 社交维度 -->
+      <div class="dimension-header social-header">
+        <div class="dimension-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="dimension-title">社交维度</h3>
+      </div>
+      
+      <!-- L3-S-01 测试卡片示例 -->
+      <div class="test-card" id="L3-S-01">
+        <div class="card-header" onclick="toggleCard('L3-S-01')">
+          <h4 class="card-title">L3-S-01: 主动发起相关对话</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L3 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶基于视觉观察主动发起对话的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>有趣或新奇的物品</li>
+              <li>普通环境中的变化元素</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>在玩偶视野中放置新物品或创造环境变化</li>
+              <li>与玩偶保持沉默2分钟</li>
+              <li>记录玩偶是否及如何主动发起与物品或环境相关的对话</li>
+              <li>重复几次不同场景</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">从不主动发起基于视觉的对话</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">极少主动发起对话，内容简单或不够相关</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">有时主动发起相关对话，内容基本适当</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">经常主动发起针对性强的相关对话</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">高频率主动发起高质量、高相关性、有洞见的对话</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>主动发起对话的频率</li>
+              <li>对话的相关性和针对性</li>
+              <li>对话内容的深度和创意性</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L3-S-01-score-1" name="L3-S-01-score" value="1">
+                <label for="L3-S-01-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-01-score-2" name="L3-S-01-score" value="2">
+                <label for="L3-S-01-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-01-score-3" name="L3-S-01-score" value="3">
+                <label for="L3-S-01-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-01-score-4" name="L3-S-01-score" value="4">
+                <label for="L3-S-01-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-01-score-5" name="L3-S-01-score" value="5">
+                <label for="L3-S-01-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L3-S-01-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L3-P-01 测试卡片 -->
+      <div class="test-card" id="L3-P-01">
+        <div class="card-header" onclick="toggleCard('L3-P-01')">
+          <h4 class="card-title">L3-P-01: 复杂场景分析</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L3 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶分析复杂视觉场景的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>包含多个元素和复杂关系的场景图片（如繁忙街道、复杂室内场景等）</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示复杂场景图片</li>
+              <li>询问"你能详细描述这个场景吗？"</li>
+              <li>进一步询问"你能分析场景中各元素之间的关系吗？"</li>
+              <li>询问特定细节"你能找到[特定细节]并解释其在场景中的作用吗？"</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">仅能识别少数明显元素，无法理解场景整体</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">能识别多个元素但无法分析关系</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能基本分析场景并理解部分元素关系</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能详细分析场景并理解大部分元素关系</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能全面深入分析复杂场景，理解所有元素关系，并提供洞见</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>场景分析的全面性和深度</li>
+              <li>元素关系理解的准确性</li>
+              <li>细节识别的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L3-P-01-score-1" name="L3-P-01-score" value="1">
+                <label for="L3-P-01-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-P-01-score-2" name="L3-P-01-score" value="2">
+                <label for="L3-P-01-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-P-01-score-3" name="L3-P-01-score" value="3">
+                <label for="L3-P-01-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-P-01-score-4" name="L3-P-01-score" value="4">
+                <label for="L3-P-01-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-P-01-score-5" name="L3-P-01-score" value="5">
+                <label for="L3-P-01-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L3-P-01-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L3-P-02 测试卡片 -->
+      <div class="test-card" id="L3-P-02">
+        <div class="card-header" onclick="toggleCard('L3-P-02')">
+          <h4 class="card-title">L3-P-02: 视觉推理与预测</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L3 / 感知维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶基于视觉信息进行推理和预测的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>包含因果关系或时间序列的图片（如物理现象、天气变化等）</li>
+              <li>或视频片段（可暂停在关键帧）</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示包含因果关系的图片或视频</li>
+              <li>询问"你认为接下来会发生什么？为什么？"</li>
+              <li>或询问"是什么导致了这种情况？你能解释原因吗？"</li>
+              <li>评估玩偶的推理逻辑和预测准确性</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法进行任何推理或预测</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">能做出简单预测但逻辑不清或不准确</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能进行基本推理和预测，逻辑基本合理</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能进行较深入的推理和准确预测，逻辑清晰</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能进行复杂深入的推理和高度准确的预测，考虑多种可能性</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>推理的逻辑性和深度</li>
+              <li>预测的准确性和合理性</li>
+              <li>考虑多种可能性的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L3-P-02-score-1" name="L3-P-02-score" value="1">
+                <label for="L3-P-02-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-P-02-score-2" name="L3-P-02-score" value="2">
+                <label for="L3-P-02-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-P-02-score-3" name="L3-P-02-score" value="3">
+                <label for="L3-P-02-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-P-02-score-4" name="L3-P-02-score" value="4">
+                <label for="L3-P-02-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-P-02-score-5" name="L3-P-02-score" value="5">
+                <label for="L3-P-02-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L3-P-02-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L3-S-02 测试卡片 -->
+      <div class="test-card" id="L3-S-02">
+        <div class="card-header" onclick="toggleCard('L3-S-02')">
+          <h4 class="card-title">L3-S-02: 视觉情境下的社交推理</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L3 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶在视觉情境下进行复杂社交推理的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>包含复杂社交互动的图片或视频（如冲突场景、多人互动等）</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示复杂社交场景</li>
+              <li>询问"你认为这些人之间发生了什么？他们的关系可能是什么？"</li>
+              <li>进一步询问"你认为他们在想什么？为什么会有这样的行为？"</li>
+              <li>询问"如果你是场景中的一员，你会如何应对？"</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法理解社交情境或做出任何有意义的推理</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">能做出基本推理但缺乏深度，无法理解复杂社交动态</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能进行合理的社交推理，理解基本社交动态</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能进行深入的社交推理，理解复杂社交动态和潜在动机</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能进行高度复杂的社交推理，理解微妙的社交线索，提供多层次分析</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>社交推理的深度和复杂性</li>
+              <li>理解他人意图和动机的能力</li>
+              <li>考虑多种社交视角的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L3-S-02-score-1" name="L3-S-02-score" value="1">
+                <label for="L3-S-02-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-02-score-2" name="L3-S-02-score" value="2">
+                <label for="L3-S-02-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-02-score-3" name="L3-S-02-score" value="3">
+                <label for="L3-S-02-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-02-score-4" name="L3-S-02-score" value="4">
+                <label for="L3-S-02-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-02-score-5" name="L3-S-02-score" value="5">
+                <label for="L3-S-02-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L3-S-02-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- L3-S-03 测试卡片 -->
+      <div class="test-card" id="L3-S-03">
+        <div class="card-header" onclick="toggleCard('L3-S-03')">
+          <h4 class="card-title">L3-S-03: 视觉记忆与持续对话</h4>
+          <span class="expand-icon">▼</span>
+        </div>
+        <div class="card-content">
+          <div class="test-info">
+            <div class="info-row">
+              <div class="info-label">测试级别/维度:</div>
+              <div class="info-value">L3 / 社交维度</div>
+            </div>
+            <div class="info-row">
+              <div class="info-label">测试目的:</div>
+              <div class="info-value">评估玩偶记忆视觉信息并在后续对话中持续引用的能力</div>
+            </div>
+          </div>
+          
+          <div class="test-materials">
+            <div class="materials-title">所需材料:</div>
+            <ul class="materials-list">
+              <li>多个不同的物品或图片</li>
+              <li>可以隐藏或移除的物品</li>
+            </ul>
+          </div>
+          
+          <div class="test-steps">
+            <div class="steps-title">执行步骤:</div>
+            <ol class="steps-list">
+              <li>向玩偶展示一组物品或图片，确保其能看清</li>
+              <li>进行5-10分钟的一般对话，不直接提及这些物品</li>
+              <li>移除或隐藏部分物品</li>
+              <li>询问"你还记得刚才看到的物品吗？有什么变化？"</li>
+              <li>继续对话，评估玩偶是否能主动引用之前看到的视觉信息</li>
+            </ol>
+          </div>
+          
+          <div class="scoring-criteria">
+            <div class="scoring-title">评分标准:</div>
+            <div class="score-row">
+              <div class="score-label">1.</div>
+              <div class="score-desc">无法记住任何之前看到的视觉信息</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">2.</div>
+              <div class="score-desc">能记住部分视觉信息但无法识别变化，不会在后续对话中引用</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">3.</div>
+              <div class="score-desc">能记住大部分视觉信息并识别明显变化，偶尔在对话中引用</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">4.</div>
+              <div class="score-desc">能准确记住视觉信息并识别细微变化，经常在对话中自然引用</div>
+            </div>
+            <div class="score-row">
+              <div class="score-label">5.</div>
+              <div class="score-desc">能完整记住视觉信息并精确识别所有变化，在长时间对话中持续自然引用</div>
+            </div>
+          </div>
+          
+          <div class="test-notes">
+            <div class="notes-title">观察要点:</div>
+            <ul class="materials-list">
+              <li>视觉记忆的准确性和持久性</li>
+              <li>识别变化的能力</li>
+              <li>在对话中自然引用视觉信息的能力</li>
+            </ul>
+          </div>
+          
+          <div class="test-result">
+            <div class="notes-title">测试评分:</div>
+            <div class="rating-group">
+              <div class="rating-option">
+                <input type="radio" id="L3-S-03-score-1" name="L3-S-03-score" value="1">
+                <label for="L3-S-03-score-1">1</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-03-score-2" name="L3-S-03-score" value="2">
+                <label for="L3-S-03-score-2">2</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-03-score-3" name="L3-S-03-score" value="3">
+                <label for="L3-S-03-score-3">3</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-03-score-4" name="L3-S-03-score" value="4">
+                <label for="L3-S-03-score-4">4</label>
+              </div>
+              <div class="rating-option">
+                <input type="radio" id="L3-S-03-score-5" name="L3-S-03-score" value="5">
+                <label for="L3-S-03-score-5">5</label>
+              </div>
+            </div>
+            
+            <div class="notes-title">观察笔记:</div>
+            <textarea class="observation-notes" id="L3-S-03-notes" placeholder="记录观察到的表现、问题或特殊情况..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- 测试结果页面 -->
+    <div id="results-section" class="results-section">
+      <h2>测试结果与评估</h2>
+      <p>根据已完成的测试，生成最终评分和等级评估。</p>
+      
+      <!-- 测试者信息 -->
+      <div class="tester-info">
+        <h3>测试基本信息</h3>
+        <div class="info-field">
+          <label for="tester-name">测试者姓名:</label>
+          <input type="text" id="tester-name" placeholder="输入测试者姓名">
+        </div>
+        <div class="info-field">
+          <label for="test-date">测试日期:</label>
+          <input type="date" id="test-date">
+        </div>
+        <div class="info-field">
+          <label for="product-model">产品型号/版本:</label>
+          <input type="text" id="product-model" placeholder="输入产品型号或版本">
+        </div>
+        <div class="info-field">
+          <label for="test-environment">测试环境:</label>
+          <input type="text" id="test-environment" placeholder="简要描述测试环境">
+        </div>
+      </div>
+      
+      <!-- 得分汇总表 -->
+      <div class="scores-panel">
+        <h3>测试得分汇总</h3>
+        <div class="table-responsive">
+          <table class="scores-table" id="l1-scores-table">
+            <thead>
+              <tr>
+                <th colspan="3">L1 基础级能力评分</th>
+              </tr>
+              <tr>
+                <th>维度</th>
+                <th>测试项目</th>
+                <th>得分(1-5)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- 感知维度 -->
+              <tr>
+                <td rowspan="4" class="dimension-name">感知维度</td>
+                <td>L1-P-01: 基础物品识别</td>
+                <td id="score-L1-P-01">-</td>
+              </tr>
+              <tr>
+                <td>L1-P-02: 物品特征识别</td>
+                <td id="score-L1-P-02">-</td>
+              </tr>
+              <tr>
+                <td>L1-P-03: 人物存在感知</td>
+                <td id="score-L1-P-03">-</td>
+              </tr>
+              <tr>
+                <td>L1-P-04: 注视识别测试</td>
+                <td id="score-L1-P-04">-</td>
+              </tr>
+              <tr class="average-row">
+                <td colspan="2">感知维度平均分</td>
+                <td id="l1-perception-avg">-</td>
+              </tr>
+              
+              <!-- 社交维度 -->
+              <tr>
+                <td rowspan="3" class="dimension-name">社交维度</td>
+                <td>L1-S-01: 明确视觉请求响应</td>
+                <td id="score-L1-S-01">-</td>
+              </tr>
+              <tr>
+                <td>L1-S-02: 上下文视觉引用</td>
+                <td id="score-L1-S-02">-</td>
+              </tr>
+              <tr>
+                <td>L1-S-03: 自然融入评估</td>
+                <td id="score-L1-S-03">-</td>
+              </tr>
+              <tr class="average-row">
+                <td colspan="2">社交维度平均分</td>
+                <td id="l1-social-avg">-</td>
+              </tr>
+              
+              <tr class="average-row">
+                <td colspan="2"><strong>L1 总平均分</strong></td>
+                <td id="l1-total-avg"><strong>-</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- L2和L3得分表可以类似添加 -->
+        <div class="table-responsive">
+          <table class="scores-table" id="l2-scores-table">
+            <thead>
+              <tr>
+                <th colspan="3">L2 进阶级能力评分</th>
+              </tr>
+              <tr>
+                <th>维度</th>
+                <th>测试项目</th>
+                <th>得分(1-5)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- 感知维度 -->
+              <tr>
+                <td rowspan="4" class="dimension-name">感知维度</td>
+                <td>L2-P-01: 文字内容识别</td>
+                <td id="score-L2-P-01">-</td>
+              </tr>
+              <tr>
+                <td>L2-P-02: 绘画细节识别</td>
+                <td id="score-L2-P-02">-</td>
+              </tr>
+              <tr>
+                <td>L2-P-03: 物品细节区分</td>
+                <td id="score-L2-P-03">-</td>
+              </tr>
+              <tr>
+                <td>L2-P-04: 环境类型识别</td>
+                <td id="score-L2-P-04">-</td>
+              </tr>
+              <tr class="average-row">
+                <td colspan="2">感知维度平均分</td>
+                <td id="l2-perception-avg">-</td>
+              </tr>
+              
+              <!-- 社交维度 -->
+              <tr>
+                <td rowspan="3" class="dimension-name">社交维度</td>
+                <td>L2-S-01: 视觉情境理解</td>
+                <td id="score-L2-S-01">-</td>
+              </tr>
+              <tr>
+                <td>L2-S-02: 情绪识别与回应</td>
+                <td id="score-L2-S-02">-</td>
+              </tr>
+              <tr>
+                <td>L2-S-03: 视觉引导对话</td>
+                <td id="score-L2-S-03">-</td>
+              </tr>
+              <tr class="average-row">
+                <td colspan="2">社交维度平均分</td>
+                <td id="l2-social-avg">-</td>
+              </tr>
+              
+              <tr class="average-row">
+                <td colspan="2"><strong>L2 总平均分</strong></td>
+                <td id="l2-total-avg"><strong>-</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- L3得分表 -->
+        <div class="table-responsive">
+          <table class="scores-table" id="l3-scores-table">
+            <thead>
+              <tr>
+                <th colspan="3">L3 高级能力评分</th>
+              </tr>
+              <tr>
+                <th>维度</th>
+                <th>测试项目</th>
+                <th>得分(1-5)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- 感知维度 -->
+              <tr>
+                <td rowspan="2" class="dimension-name">感知维度</td>
+                <td>L3-P-01: 复杂场景分析</td>
+                <td id="score-L3-P-01">-</td>
+              </tr>
+              <tr>
+                <td>L3-P-02: 视觉推理与预测</td>
+                <td id="score-L3-P-02">-</td>
+              </tr>
+              <tr class="average-row">
+                <td colspan="2">感知维度平均分</td>
+                <td id="l3-perception-avg">-</td>
+              </tr>
+              
+              <!-- 社交维度 -->
+              <tr>
+                <td rowspan="3" class="dimension-name">社交维度</td>
+                <td>L3-S-01: 主动发起相关对话</td>
+                <td id="score-L3-S-01">-</td>
+              </tr>
+              <tr>
+                <td>L3-S-02: 视觉情境下的社交推理</td>
+                <td id="score-L3-S-02">-</td>
+              </tr>
+              <tr>
+                <td>L3-S-03: 视觉记忆与持续对话</td>
+                <td id="score-L3-S-03">-</td>
+              </tr>
+              <tr class="average-row">
+                <td colspan="2">社交维度平均分</td>
+                <td id="l3-social-avg">-</td>
+              </tr>
+              
+              <tr class="average-row">
+                <td colspan="2"><strong>L3 总平均分</strong></td>
+                <td id="l3-total-avg"><strong>-</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- 能力雷达图 -->
+      <div class="chart-container">
+        <canvas id="radar-chart"></canvas>
+      </div>
+      
+      <!-- 等级评估结果 -->
+      <div class="level-assessment">
+        <h3>能力等级评定</h3>
+        <p>根据测试结果，评定产品达到的能力等级:</p>
+        
+        <div class="assessment-result">
+          <div class="assessment-option">
+            <input type="radio" id="level-l1" name="level-assessment" value="L1">
+            <label for="level-l1">L1 基础级</label>
+          </div>
+          <div class="assessment-option">
+            <input type="radio" id="level-l2" name="level-assessment" value="L2">
+            <label for="level-l2">L2 进阶级</label>
+          </div>
+          <div class="assessment-option">
+            <input type="radio" id="level-l3" name="level-assessment" value="L3">
+            <label for="level-l3">L3 高级</label>
+          </div>
+          <div class="assessment-option">
+            <input type="radio" id="level-none" name="level-assessment" value="未达标">
+            <label for="level-none">未达标</label>
+          </div>
+        </div>
+        
+        <div class="assessment-field">
+          <label for="strength-areas">突出表现维度:</label>
+          <textarea id="strength-areas" placeholder="描述表现优秀的维度和能力..."></textarea>
+        </div>
+        
+        <div class="assessment-field">
+          <label for="improvement-areas">需改进维度:</label>
+          <textarea id="improvement-areas" placeholder="描述需要改进的维度和能力..."></textarea>
+        </div>
+        
+        <div class="assessment-field">
+          <label for="overall-assessment">总体评价:</label>
+          <textarea id="overall-assessment" placeholder="对产品视觉能力的整体评价..."></textarea>
+        </div>
+      </div>
+      
+      <!-- 动作按钮 -->
+      <div class="action-buttons">
+        <button class="btn btn-primary" onclick="calculateScores()">计算得分</button>
+        <button class="btn btn-success" onclick="saveAssessment()">保存结果</button>
+        <button class="btn btn-export" onclick="exportResults()">导出报告</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // 当前活跃的选项卡
+    let activeTab = 'l1';
+    
+    // 切换选项卡
+    function switchTab(tab) {
+      // 隐藏所有选项卡内容
+      document.querySelectorAll('.test-cards, .results-section').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      // 移除所有选项卡的活跃状态
+      document.querySelectorAll('.nav-tab').forEach(el => {
+        el.classList.remove('active');
+      });
+      
+      // 显示选中的选项卡内容
+      if (tab === 'results') {
+        document.getElementById('results-section').classList.add('active');
+      } else {
+        document.getElementById(tab + '-cards').classList.add('active');
+      }
+      
+      // 设置选中选项卡的活跃状态
+      document.querySelector('.' + tab + '-tab').classList.add('active');
+      
+      // 更新当前活跃的选项卡
+      activeTab = tab;
+    }
+    
+    // 展开/折叠测试卡片
+    function toggleCard(cardId) {
+      const card = document.getElementById(cardId);
+      if (card.classList.contains('expanded')) {
+        card.classList.remove('expanded');
+      } else {
+        card.classList.add('expanded');
+      }
+    }
+    
+    // 计算得分
+    function calculateScores() {
+      // L1 感知维度平均分
+      let l1PerceptionScores = [
+        getScore('L1-P-01'),
+        getScore('L1-P-02'),
+        getScore('L1-P-03'),
+        getScore('L1-P-04')
+      ].filter(score => score > 0);
+      
+      let l1PerceptionAvg = l1PerceptionScores.length > 0 
+        ? (l1PerceptionScores.reduce((a, b) => a + b, 0) / l1PerceptionScores.length).toFixed(1) 
+        : "-";
+      
+      document.getElementById('l1-perception-avg').textContent = l1PerceptionAvg;
+      
+      // L1 社交维度平均分
+      let l1SocialScores = [
+        getScore('L1-S-01'),
+        getScore('L1-S-02'),
+        getScore('L1-S-03')
+      ].filter(score => score > 0);
+      
+      let l1SocialAvg = l1SocialScores.length > 0 
+        ? (l1SocialScores.reduce((a, b) => a + b, 0) / l1SocialScores.length).toFixed(1) 
+        : "-";
+      
+      document.getElementById('l1-social-avg').textContent = l1SocialAvg;
+      
+      // L1 总平均分
+      let l1AllScores = [...l1PerceptionScores, ...l1SocialScores];
+      let l1TotalAvg = l1AllScores.length > 0 
+        ? (l1AllScores.reduce((a, b) => a + b, 0) / l1AllScores.length).toFixed(1) 
+        : "-";
+      
+      document.getElementById('l1-total-avg').textContent = l1TotalAvg;
+      
+      // L2 感知维度平均分
+      let l2PerceptionScores = [
+        getScore('L2-P-01'),
+        getScore('L2-P-02'),
+        getScore('L2-P-03'),
+        getScore('L2-P-04')
+      ].filter(score => score > 0);
+      
+      let l2PerceptionAvg = l2PerceptionScores.length > 0 
+        ? (l2PerceptionScores.reduce((a, b) => a + b, 0) / l2PerceptionScores.length).toFixed(1) 
+        : "-";
+      
+      if (document.getElementById('l2-perception-avg')) {
+        document.getElementById('l2-perception-avg').textContent = l2PerceptionAvg;
+      }
+      
+      // L2 社交维度平均分
+      let l2SocialScores = [
+        getScore('L2-S-01'),
+        getScore('L2-S-02'),
+        getScore('L2-S-03')
+      ].filter(score => score > 0);
+      
+      let l2SocialAvg = l2SocialScores.length > 0 
+        ? (l2SocialScores.reduce((a, b) => a + b, 0) / l2SocialScores.length).toFixed(1) 
+        : "-";
+      
+      if (document.getElementById('l2-social-avg')) {
+        document.getElementById('l2-social-avg').textContent = l2SocialAvg;
+      }
+      
+      // L2 总平均分
+      let l2AllScores = [...l2PerceptionScores, ...l2SocialScores];
+      let l2TotalAvg = l2AllScores.length > 0 
+        ? (l2AllScores.reduce((a, b) => a + b, 0) / l2AllScores.length).toFixed(1) 
+        : "-";
+      
+      if (document.getElementById('l2-total-avg')) {
+        document.getElementById('l2-total-avg').textContent = l2TotalAvg;
+      }
+      
+      // L3 感知维度平均分
+      let l3PerceptionScores = [
+        getScore('L3-P-01'),
+        getScore('L3-P-02')
+      ].filter(score => score > 0);
+      
+      let l3PerceptionAvg = l3PerceptionScores.length > 0 
+        ? (l3PerceptionScores.reduce((a, b) => a + b, 0) / l3PerceptionScores.length).toFixed(1) 
+        : "-";
+      
+      if (document.getElementById('l3-perception-avg')) {
+        document.getElementById('l3-perception-avg').textContent = l3PerceptionAvg;
+      }
+      
+      // L3 社交维度平均分
+      let l3SocialScores = [
+        getScore('L3-S-01'),
+        getScore('L3-S-02'),
+        getScore('L3-S-03')
+      ].filter(score => score > 0);
+      
+      let l3SocialAvg = l3SocialScores.length > 0 
+        ? (l3SocialScores.reduce((a, b) => a + b, 0) / l3SocialScores.length).toFixed(1) 
+        : "-";
+      
+      if (document.getElementById('l3-social-avg')) {
+        document.getElementById('l3-social-avg').textContent = l3SocialAvg;
+      }
+      
+      // L3 总平均分
+      let l3AllScores = [...l3PerceptionScores, ...l3SocialScores];
+      let l3TotalAvg = l3AllScores.length > 0 
+        ? (l3AllScores.reduce((a, b) => a + b, 0) / l3AllScores.length).toFixed(1) 
+        : "-";
+      
+      if (document.getElementById('l3-total-avg')) {
+        document.getElementById('l3-total-avg').textContent = l3TotalAvg;
+      }
+      
+      // 更新雷达图
+      updateRadarChart();
+      
+      // 自动判断达到的级别
+      determineLevel();
+    }
+    
+    // 获取特定测试项的得分
+    function getScore(testId) {
+      const scoreInputs = document.getElementsByName(testId + '-score');
+      for (let i = 0; i < scoreInputs.length; i++) {
+        if (scoreInputs[i].checked) {
+          // 更新得分显示
+          if (document.getElementById('score-' + testId)) {
+            document.getElementById('score-' + testId).textContent = scoreInputs[i].value;
+          }
+          return parseInt(scoreInputs[i].value);
+        }
+      }
+      return 0; // 未评分返回0
+    }
+    
+    // 更新雷达图
+    function updateRadarChart() {
+      const ctx = document.getElementById('radar-chart').getContext('2d');
+      
+      // 获取各维度平均分
+      const l1PerceptionAvg = parseFloat(document.getElementById('l1-perception-avg').textContent) || 0;
+      const l1SocialAvg = parseFloat(document.getElementById('l1-social-avg').textContent) || 0;
+      
+      // 获取L2和L3的平均分（如果存在）
+      let l2PerceptionAvg = 0;
+      let l2SocialAvg = 0;
+      let l3PerceptionAvg = 0;
+      let l3SocialAvg = 0;
+      
+      if (document.getElementById('l2-perception-avg')) {
+        l2PerceptionAvg = parseFloat(document.getElementById('l2-perception-avg').textContent) || 0;
+      }
+      if (document.getElementById('l2-social-avg')) {
+        l2SocialAvg = parseFloat(document.getElementById('l2-social-avg').textContent) || 0;
+      }
+      if (document.getElementById('l3-perception-avg')) {
+        l3PerceptionAvg = parseFloat(document.getElementById('l3-perception-avg').textContent) || 0;
+      }
+      if (document.getElementById('l3-social-avg')) {
+        l3SocialAvg = parseFloat(document.getElementById('l3-social-avg').textContent) || 0;
+      }
+      
+      // 创建雷达图
+      if (window.radarChart) {
+        window.radarChart.destroy();
+      }
+      
+      window.radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['感知维度', '社交维度', '记忆维度', '时序维度', '认知维度'],
+          datasets: [
+            {
+              label: 'L1 基础级',
+              data: [l1PerceptionAvg, l1SocialAvg, 0, 0, 0],
+              backgroundColor: 'rgba(52, 152, 219, 0.2)',
+              borderColor: 'rgba(52, 152, 219, 1)',
+              pointBackgroundColor: 'rgba(52, 152, 219, 1)',
+              pointBorderColor: '#fff',
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: 'rgba(52, 152, 219, 1)'
+            },
+            {
+              label: 'L2 进阶级',
+              data: [l2PerceptionAvg, l2SocialAvg, 0, 0, 0],
+              backgroundColor: 'rgba(46, 204, 113, 0.2)',
+              borderColor: 'rgba(46, 204, 113, 1)',
+              pointBackgroundColor: 'rgba(46, 204, 113, 1)',
+              pointBorderColor: '#fff',
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: 'rgba(46, 204, 113, 1)'
+            },
+            {
+              label: 'L3 高级',
+              data: [l3PerceptionAvg, l3SocialAvg, 0, 0, 0],
+              backgroundColor: 'rgba(155, 89, 182, 0.2)',
+              borderColor: 'rgba(155, 89, 182, 1)',
+              pointBackgroundColor: 'rgba(155, 89, 182, 1)',
+              pointBorderColor: '#fff',
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: 'rgba(155, 89, 182, 1)'
+            }
+          ]
+        },
+        options: {
+          scales: {
+            r: {
+              angleLines: {
+                display: true
+              },
+              suggestedMin: 0,
+              suggestedMax: 5
+            }
+          }
+        }
+      });
+    }
+    
+    // 确定达到的级别
+    function determineLevel() {
+      const l1PerceptionAvg = parseFloat(document.getElementById('l1-perception-avg').textContent) || 0;
+      const l1SocialAvg = parseFloat(document.getElementById('l1-social-avg').textContent) || 0;
+      
+      // 获取L2和L3的平均分（如果存在）
+      let l2PerceptionAvg = 0;
+      let l2SocialAvg = 0;
+      let l3PerceptionAvg = 0;
+      let l3SocialAvg = 0;
+      
+      if (document.getElementById('l2-perception-avg')) {
+        l2PerceptionAvg = parseFloat(document.getElementById('l2-perception-avg').textContent) || 0;
+      }
+      if (document.getElementById('l2-social-avg')) {
+        l2SocialAvg = parseFloat(document.getElementById('l2-social-avg').textContent) || 0;
+      }
+      if (document.getElementById('l3-perception-avg')) {
+        l3PerceptionAvg = parseFloat(document.getElementById('l3-perception-avg').textContent) || 0;
+      }
+      if (document.getElementById('l3-social-avg')) {
+        l3SocialAvg = parseFloat(document.getElementById('l3-social-avg').textContent) || 0;
+      }
+      
+      // 根据评分标准判断级别
+      if (l3PerceptionAvg >= 3.5 && l3SocialAvg >= 3.5) {
+        document.getElementById('level-l3').checked = true;
+      } else if (l2PerceptionAvg >= 3.5 && l2SocialAvg >= 3.5) {
+        document.getElementById('level-l2').checked = true;
+      } else if (l1PerceptionAvg >= 3.5 && l1SocialAvg >= 3.5) {
+        document.getElementById('level-l1').checked = true;
+      } else {
+        document.getElementById('level-none').checked = true;
+      }
+    }
+    
+    // 导出测试报告
+    function exportResults() {
+      // 获取测试者信息
+      const testerName = document.getElementById('tester-name').value || '未填写';
+      const testDate = document.getElementById('test-date').value || '未填写';
+      const productModel = document.getElementById('product-model').value || '未填写';
+      
+      // 生成报告内容
+      let reportContent = `AI视觉能力测试报告\n\n`;
+      reportContent += `测试者: ${testerName}\n`;
+      reportContent += `测试日期: ${testDate}\n`;
+      reportContent += `产品型号: ${productModel}\n\n`;
+      
+      reportContent += `====== L1 基础级得分 ======\n`;
+      reportContent += `感知维度平均分: ${document.getElementById('l1-perception-avg').textContent}\n`;
+      reportContent += `社交维度平均分: ${document.getElementById('l1-social-avg').textContent}\n`;
+      reportContent += `L1总平均分: ${document.getElementById('l1-total-avg').textContent}\n\n`;
+      
+      // 添加L2和L3的评分（如果存在）
+      if (document.getElementById('l2-perception-avg')) {
+        reportContent += `====== L2 进阶级得分 ======\n`;
+        reportContent += `感知维度平均分: ${document.getElementById('l2-perception-avg').textContent}\n`;
+        reportContent += `社交维度平均分: ${document.getElementById('l2-social-avg').textContent}\n`;
+        reportContent += `L2总平均分: ${document.getElementById('l2-total-avg').textContent}\n\n`;
+      }
+      
+      if (document.getElementById('l3-perception-avg')) {
+        reportContent += `====== L3 高级得分 ======\n`;
+        reportContent += `感知维度平均分: ${document.getElementById('l3-perception-avg').textContent}\n`;
+        reportContent += `社交维度平均分: ${document.getElementById('l3-social-avg').textContent}\n`;
+        reportContent += `L3总平均分: ${document.getElementById('l3-total-avg').textContent}\n\n`;
+      }
+      
+      // 判断达到的级别
+      let levelAchieved = '未达标';
+      document.getElementsByName('level-assessment').forEach(radio => {
+        if (radio.checked) {
+          levelAchieved = radio.value;
+        }
+      });
+      
+      reportContent += `达到级别: ${levelAchieved}\n\n`;
+      
+      // 添加优势和改进领域
+      reportContent += `突出表现维度:\n${document.getElementById('strength-areas').value || '未填写'}\n\n`;
+      reportContent += `需改进维度:\n${document.getElementById('improvement-areas').value || '未填写'}\n\n`;
+      reportContent += `总体评价:\n${document.getElementById('overall-assessment').value || '未填写'}\n`;
+      
+      // 创建下载链接
+      const blob = new Blob([reportContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `AI视觉能力测试报告_${productModel}_${testDate}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    
+    // 保存评估结果
+    function saveAssessment() {
+      alert('评估结果已保存！');
+      // 实际应用中可添加保存到服务器或本地存储的逻辑
+    }
+    
+    // 页面初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      // 默认展开第一个测试卡片
+      toggleCard('L1-P-01');
+      
+      // 设置当前日期
+      document.getElementById('test-date').valueAsDate = new Date();
+    });
+  </script>
+</body>
+</html>
