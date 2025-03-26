@@ -765,7 +765,9 @@ function exportResults() {
             <thead>
                 <tr>
                     <th>测试卡ID</th>
+                    <th>测试用例名称</th>
                     <th>评分</th>
+                    <th>评分标准描述</th>
                     <th>观察笔记</th>
                 </tr>
             </thead>
@@ -775,10 +777,97 @@ function exportResults() {
     // 添加所有已评分的测试卡
     Object.keys(testResults).forEach(level => {
         Object.keys(testResults[level]).forEach(cardId => {
+            // 获取测试用例名称
+            let testName = '';
+            let scoreDescription = '';
+            
+            // 获取测试卡片元素
+            const cardPath = getCardPath(level, cardId);
+            
+            // 使用fetch异步获取测试卡片内容
+            fetch(cardPath)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // 获取测试用例名称（h2标题冒号后的内容）
+                    const h2 = doc.querySelector('h2');
+                    if (h2) {
+                        const titleParts = h2.textContent.split(':');
+                        if (titleParts.length > 1) {
+                            testName = titleParts[1].trim();
+                        }
+                    }
+                    
+                    // 获取评分标准描述
+                    const score = testResults[level][cardId].score;
+                    const scoringCriteria = doc.querySelector('.scoring-criteria');
+                    if (scoringCriteria) {
+                        const scoreItems = scoringCriteria.querySelectorAll('li');
+                        scoreItems.forEach(item => {
+                            if (item.textContent.startsWith(`${score}分`)) {
+                                scoreDescription = item.textContent.substring(3).trim();
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error(`获取测试卡片内容出错 (${cardId}):`, error);
+                });
+                
+            // 由于fetch是异步的，我们需要使用同步方式获取测试卡片内容
+            function getTestCardInfo(cardPath) {
+                let testName = '';
+                let scoreDescription = '';
+                
+                try {
+                    // 使用XMLHttpRequest同步获取测试卡片内容
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', cardPath, false); // 第三个参数false表示同步请求
+                    xhr.send();
+                    
+                    if (xhr.status === 200) {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                        
+                        // 获取测试用例名称（h2标题冒号后的内容）
+                        const h2 = doc.querySelector('h2');
+                        if (h2) {
+                            const titleParts = h2.textContent.split(':');
+                            if (titleParts.length > 1) {
+                                testName = titleParts[1].trim();
+                            }
+                        }
+                        
+                        // 获取评分标准描述
+                        const score = testResults[level][cardId].score;
+                        const scoringCriteria = doc.querySelector('.scoring-criteria');
+                        if (scoringCriteria) {
+                            const scoreItems = scoringCriteria.querySelectorAll('li');
+                            scoreItems.forEach(item => {
+                                if (item.textContent.startsWith(`${score}分`)) {
+                                    scoreDescription = item.textContent.substring(3).trim();
+                                }
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(`获取测试卡片内容出错 (${cardId}):`, error);
+                }
+                
+                return { testName, scoreDescription };
+            }
+            
+            // 获取测试卡片信息
+            const cardInfo = getTestCardInfo(cardPath);
+            
             resultsHTML += `
                 <tr>
                     <td>${cardId}</td>
+                    <td>${cardInfo.testName || '-'}</td>
                     <td>${testResults[level][cardId].score}</td>
+                    <td>${cardInfo.scoreDescription || '-'}</td>
                     <td>${testResults[level][cardId].notes || '-'}</td>
                 </tr>
             `;
@@ -807,6 +896,31 @@ function exportResults() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }, 100);
+}
+
+// 获取测试卡片路径
+function getCardPath(level, cardId) {
+    // 解析cardId，例如"L1-P-01"
+    const parts = cardId.split('-');
+    if (parts.length < 3) return '';
+    
+    const cardLevel = parts[0]; // L1
+    const dimensionCode = parts[1].toLowerCase(); // p
+    
+    // 映射维度代码到维度名称
+    const dimensionMap = {
+        'p': 'perception',
+        's': 'social',
+        'm': 'memory',
+        't': 'temporal',
+        'c': 'cognitive'
+    };
+    
+    const dimension = dimensionMap[dimensionCode] || '';
+    if (!dimension) return '';
+    
+    // 构建路径
+    return `data/test_cases/${cardLevel}/${dimension}/${cardId}.html`;
 }
 
 // 导出并重新开始测试
