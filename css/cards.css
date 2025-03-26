@@ -5,6 +5,9 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     padding: 20px;
     margin-bottom: 20px;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .card-header {
@@ -137,6 +140,7 @@
     gap: 8px;
     margin: 12px 0;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .score-buttons button {
@@ -151,15 +155,36 @@
     font-size: 1.1rem;
 }
 
+.score-buttons button.abandon-button {
+    width: auto;
+    padding: 0 15px;
+    border-radius: 20px;
+    background-color: #f8f8f8;
+    border-color: #e57373;
+    color: #e53935;
+    margin-left: 5px;
+}
+
 .score-buttons button:hover {
     background-color: #f0f7ff;
     border-color: #1976D2;
+}
+
+.score-buttons button.abandon-button:hover {
+    background-color: #ffebee;
+    border-color: #e53935;
 }
 
 .score-buttons button.selected {
     background: #1976D2;
     color: white;
     border-color: #1976D2;
+}
+
+.score-buttons button.abandon-button.selected {
+    background: #e53935;
+    color: white;
+    border-color: #e53935;
 }
 
 .notes-input {

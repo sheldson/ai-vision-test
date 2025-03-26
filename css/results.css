@@ -1,6 +1,6 @@
 /* results.css - 结果页面样式 */
 .results-container {
-    max-width: 900px;
+    max-width: 1400px;
     margin: 20px auto;
     background-color: #fff;
     border-radius: 8px;
@@ -37,17 +37,14 @@
 
 /* 维度评分卡片 */
 .dimension-scores {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
     gap: 20px;
-    justify-content: center;
+    margin-bottom: 20px;
 }
 
 .dimension-score-card {
-    flex: 1;
-    min-width: 150px;
-    max-width: 200px;
-    padding: 20px;
+    padding: 15px;
     background-color: #f9f9f9;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
@@ -55,6 +52,18 @@
     flex-direction: column;
     align-items: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+@media (max-width: 900px) {
+    .dimension-scores {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .dimension-scores {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .dimension-score-card:hover {
@@ -128,22 +137,23 @@
     font-size: 0.9rem;
 }
 
-/* 详细记录表格 */
+/* 表格容器 */
 .table-container {
     overflow-x: auto;
+    margin-bottom: 20px;
 }
 
+/* 表格样式优化 */
 #results-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    table-layout: fixed;
 }
 
-#results-table th, 
-#results-table td {
+#results-table th, #results-table td {
     padding: 12px 15px;
+    border: 1px solid #ddd;
     text-align: left;
-    border-bottom: 1px solid #eee;
 }
 
 #results-table th {
@@ -152,8 +162,32 @@
     color: #333;
 }
 
-#results-table tr:hover {
+#results-table th:nth-child(1) {
+    width: 10%;
+}
+
+#results-table th:nth-child(2) {
+    width: 25%;
+}
+
+#results-table th:nth-child(3) {
+    width: 8%;
+}
+
+#results-table th:nth-child(4) {
+    width: 32%;
+}
+
+#results-table th:nth-child(5) {
+    width: 25%;
+}
+
+#results-table tr:nth-child(even) {
     background-color: #f9f9f9;
+}
+
+#results-table tr:hover {
+    background-color: #f0f7ff;
 }
 
 #results-table td:first-child {
@@ -165,6 +199,7 @@
 .results-actions {
     display: flex;
     justify-content: center;
+    gap: 15px;
     margin-top: 30px;
 }
 
@@ -194,8 +229,7 @@
     }
     
     .dimension-scores {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: repeat(1, 1fr);
     }
     
     .dimension-score-card {

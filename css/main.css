@@ -18,7 +18,7 @@ body {
 
 /* 侧边栏样式 */
 .sidebar {
-    width: 200px; /* 恢复侧边栏宽度 */
+    width: 240px; /* 增加侧边栏宽度 */
     background-color: #1976D2;
     color: #fff;
     display: flex;
@@ -130,7 +130,7 @@ body {
 /* 主内容区域 */
 .main-content {
     flex: 1;
-    margin-left: 200px; /* 恢复与侧边栏宽度一致 */
+    margin-left: 240px; /* 与侧边栏宽度一致 */
     padding: 20px;
     overflow-y: auto;
     background-color: #f9f9f9;
@@ -145,7 +145,7 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     display: flex;
     align-items: center;
-    max-width: 1100px; /* 与卡片容器宽度一致 */
+    max-width: 1400px; /* 增加宽度 */
     margin-left: auto;
     margin-right: auto;
 }
