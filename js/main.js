@@ -32,11 +32,21 @@ const dimensionNames = {
     cognitive: "认知维度"
 };
 
+// 维度图标映射
+const dimensionIcons = {
+    perception: "fa-eye",
+    social: "fa-users",
+    memory: "fa-brain",
+    temporal: "fa-clock",
+    cognitive: "fa-lightbulb"
+};
+
 // 全局变量
 let currentLevel = "L1";
 let currentDimension = "perception";
 let currentCardIndex = 0;
 let testResults = {};
+let testSubject = ""; // 测试对象名称
 
 // 初始化函数
 function init() {
@@ -45,599 +55,688 @@ function init() {
     // 加载保存的测试结果
     loadSavedResults();
     
-    // 设置默认级别和维度
-    updateDimensionNav(currentLevel);
-    loadCard();
+    // 设置事件监听器
+    setupEventListeners();
     
-    // 设置当前日期
-    document.getElementById('test-date').textContent = new Date().toLocaleDateString();
+    // 检查是否已有测试对象名称
+    testSubject = localStorage.getItem('testSubject') || "";
     
-    // 绑定事件监听器
-    bindEventListeners();
+    // 如果没有测试对象名称，显示欢迎对话框
+    if (!testSubject) {
+        showWelcomeModal();
+    } else {
+        // 初始化维度导航
+        updateDimensionNav();
+        
+        // 加载第一个测试卡片
+        loadTestCard();
+        
+        // 更新测试进度
+        updateTestProgress();
+    }
 }
 
-// 绑定所有事件监听器
-function bindEventListeners() {
-    // 级别导航事件
+// 显示欢迎对话框
+function showWelcomeModal() {
+    const modal = document.getElementById('welcome-modal');
+    const startButton = document.getElementById('start-test-btn');
+    const subjectInput = document.getElementById('test-subject');
+    
+    // 显示模态框
+    modal.style.display = 'flex';
+    
+    // 输入框获取焦点
+    subjectInput.focus();
+    
+    // 检查输入并启用/禁用开始按钮
+    subjectInput.addEventListener('input', function() {
+        startButton.disabled = !this.value.trim();
+    });
+    
+    // 开始按钮点击事件
+    startButton.addEventListener('click', function() {
+        const subject = subjectInput.value.trim();
+        if (subject) {
+            // 保存测试对象名称
+            testSubject = subject;
+            localStorage.setItem('testSubject', subject);
+            
+            // 隐藏模态框
+            modal.style.display = 'none';
+            
+            // 初始化测试
+            updateDimensionNav();
+            loadTestCard();
+            updateTestProgress();
+        }
+    });
+    
+    // 回车键提交
+    subjectInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && this.value.trim()) {
+            startButton.click();
+        }
+    });
+}
+
+// 设置事件监听器
+function setupEventListeners() {
+    // 级别导航点击事件
     document.querySelectorAll('.level-nav a').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            
             const level = this.getAttribute('data-level');
             
-            // 如果点击的是结果页面
+            // 切换到结果页面
             if (level === 'results') {
                 showResultsPage();
                 return;
             }
             
-            // 切换到测试卡片页面
+            // 更新当前级别
+            currentLevel = level;
+            currentDimension = Object.keys(testData[currentLevel])[0];
+            currentCardIndex = 0;
+            
+            // 更新UI
+            updateActiveLevelNav();
+            updateDimensionNav();
+            loadTestCard();
+            updateTestProgress();
+            
+            // 显示测试卡片容器和维度导航面板
             document.getElementById('test-card-container').style.display = 'block';
             document.getElementById('results-container').style.display = 'none';
-            
-            // 更新导航状态
-            document.querySelectorAll('.level-nav a').forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-            
-            // 更新当前级别和维度
-            currentLevel = level;
-            updateDimensionNav(currentLevel);
-            
-            // 默认选择第一个维度
-            const firstDimension = Object.keys(testData[currentLevel])[0];
-            currentDimension = firstDimension;
-            document.querySelector(`[data-dimension="${firstDimension}"]`).classList.add('active');
-            
-            // 重置卡片索引并加载卡片
-            currentCardIndex = 0;
-            loadCard();
+            document.querySelector('.dimension-panel').style.display = 'flex';
         });
     });
     
-    // 卡片导航按钮
-    document.getElementById('prev-card').addEventListener('click', prevCard);
-    document.getElementById('next-card').addEventListener('click', nextCard);
-    document.getElementById('save-score').addEventListener('click', saveCurrentScore);
+    // 上一个/下一个按钮点击事件
+    document.getElementById('prev-card').addEventListener('click', navigateToPrevCard);
+    document.getElementById('next-card').addEventListener('click', navigateToNextCard);
     
-    // 评分按钮事件
+    // 评分按钮点击事件
     document.querySelectorAll('.score-buttons button').forEach(button => {
         button.addEventListener('click', function() {
-            document.querySelectorAll('.score-buttons button').forEach(b => b.classList.remove('selected'));
+            // 移除其他按钮的选中状态
+            document.querySelectorAll('.score-buttons button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // 添加当前按钮的选中状态
             this.classList.add('selected');
         });
     });
     
-    // 导出按钮
-    document.getElementById('export-btn').addEventListener('click', exportReport);
+    // 保存评分按钮点击事件
+    document.getElementById('save-score').addEventListener('click', saveCurrentScore);
+    
+    // 导出按钮点击事件
+    document.getElementById('export-btn').addEventListener('click', exportResults);
+    
+    // 导出并重新开始按钮点击事件
+    document.getElementById('export-restart-btn').addEventListener('click', exportAndRestart);
+    
+    // 移动端菜单切换
+    document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+    
+    // 键盘快捷键
+    document.addEventListener('keydown', function(e) {
+        // 左箭头 - 上一个卡片
+        if (e.key === 'ArrowLeft') {
+            navigateToPrevCard();
+        }
+        // 右箭头 - 下一个卡片
+        else if (e.key === 'ArrowRight') {
+            navigateToNextCard();
+        }
+        // 数字键1-5 - 评分
+        else if (['1', '2', '3', '4', '5'].includes(e.key)) {
+            const scoreButton = document.querySelector(`.score-buttons button[data-score="${e.key}"]`);
+            if (scoreButton) {
+                // 移除其他按钮的选中状态
+                document.querySelectorAll('.score-buttons button').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // 添加当前按钮的选中状态
+                scoreButton.classList.add('selected');
+            }
+        }
+    });
 }
 
 // 更新维度导航
-function updateDimensionNav(level) {
-    console.log(`更新维度导航，当前级别: ${level}`);
+function updateDimensionNav() {
+    const dimensionsContainer = document.getElementById('dimensions');
+    dimensionsContainer.innerHTML = '';
     
-    const dimensionsNav = document.getElementById('dimensions');
-    dimensionsNav.innerHTML = '';
+    // 获取当前级别的维度
+    const dimensions = Object.keys(testData[currentLevel]);
     
-    const dimensions = Object.keys(testData[level]);
-    dimensions.forEach(dim => {
-        // 跳过空维度
-        if (testData[level][dim].length === 0) return;
-        
+    // 为每个维度创建导航项
+    dimensions.forEach(dimension => {
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = '#';
-        a.setAttribute('data-dimension', dim);
+        a.innerHTML = `<i class="fas ${dimensionIcons[dimension]}"></i> ${dimensionNames[dimension]}`;
+        a.setAttribute('data-dimension', dimension);
         
-        // 设置显示名称
-        a.textContent = dimensionNames[dim] || dim;
-        
-        // 如果是当前维度，添加active类
-        if (dim === currentDimension) {
+        // 设置当前维度为活动状态
+        if (dimension === currentDimension) {
             a.classList.add('active');
         }
         
         // 添加点击事件
         a.addEventListener('click', function(e) {
             e.preventDefault();
-            document.querySelectorAll('#dimensions a').forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
             currentDimension = this.getAttribute('data-dimension');
             currentCardIndex = 0;
-            loadCard();
+            
+            // 更新UI
+            updateActiveDimensionNav();
+            loadTestCard();
         });
         
         li.appendChild(a);
-        dimensionsNav.appendChild(li);
+        dimensionsContainer.appendChild(li);
     });
 }
 
-// 加载测试卡片
-function loadCard() {
-    console.log(`加载卡片，当前级别: ${currentLevel}, 维度: ${currentDimension}, 索引: ${currentCardIndex}`);
+// 更新活动级别导航
+function updateActiveLevelNav() {
+    document.querySelectorAll('.level-nav a').forEach(link => {
+        link.classList.remove('active');
+    });
     
-    const cards = testData[currentLevel][currentDimension];
-    if (cards.length === 0) {
-        document.getElementById('current-card').innerHTML = '<p class="no-cards-message">此维度暂无测试卡片</p>';
-        document.getElementById('card-indicator').textContent = '0/0';
-        
-        // 禁用导航按钮
-        document.getElementById('prev-card').disabled = true;
-        document.getElementById('next-card').disabled = true;
-        return;
+    const activeLink = document.querySelector(`.level-nav a[data-level="${currentLevel}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
     }
+}
+
+// 更新活动维度导航
+function updateActiveDimensionNav() {
+    document.querySelectorAll('.dimension-nav a').forEach(link => {
+        link.classList.remove('active');
+    });
     
-    // 启用导航按钮
-    document.getElementById('prev-card').disabled = false;
-    document.getElementById('next-card').disabled = false;
+    const activeLink = document.querySelector(`.dimension-nav a[data-dimension="${currentDimension}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
+}
+
+// 加载测试卡片
+function loadTestCard() {
+    const cardContainer = document.getElementById('current-card');
+    const cardTitle = document.getElementById('current-card-title');
+    const cardIndicator = document.getElementById('card-indicator');
     
-    const cardId = cards[currentCardIndex];
+    // 获取当前卡片ID
+    const currentCards = testData[currentLevel][currentDimension];
+    const cardId = currentCards[currentCardIndex];
     
-    // 使用fetch加载卡片HTML
-    const cardUrl = `data/test_cases/${currentLevel}/${currentDimension}/${cardId}.html`;
-    console.log(`尝试加载卡片: ${cardUrl}`);
+    // 更新卡片指示器
+    cardIndicator.textContent = `${currentCardIndex + 1}/${currentCards.length}`;
     
-    fetch(cardUrl)
+    // 加载卡片内容
+    fetch(`data/test_cases/${currentLevel}/${currentDimension}/${cardId}.html`)
         .then(response => {
-            console.log(`卡片加载响应状态: ${response.status} ${response.statusText}`);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             return response.text();
         })
         .then(html => {
-            console.log(`成功加载卡片: ${cardId}`);
-            document.getElementById('current-card').innerHTML = html;
-            document.getElementById('card-indicator').textContent = `${currentCardIndex + 1}/${cards.length}`;
+            cardContainer.innerHTML = html;
             
-            // 如果有保存的评分，恢复显示
-            if (testResults[cardId]) {
-                const score = testResults[cardId].score;
-                const notes = testResults[cardId].notes;
-                
-                document.querySelectorAll('.score-buttons button').forEach(button => {
-                    if (parseInt(button.getAttribute('data-score')) === score) {
-                        button.classList.add('selected');
-                    }
-                });
-                
-                document.getElementById('observation-notes').value = notes;
-            } else {
-                // 清空评分
-                document.querySelectorAll('.score-buttons button').forEach(button => {
-                    button.classList.remove('selected');
-                });
-                document.getElementById('observation-notes').value = '';
+            // 提取并设置卡片标题
+            const titleElement = cardContainer.querySelector('h2');
+            if (titleElement) {
+                cardTitle.textContent = titleElement.textContent;
+                titleElement.style.display = 'none'; // 隐藏原标题
             }
+            
+            // 更新按钮状态
+            updateNavigationButtons();
+            
+            // 加载已保存的评分（如果有）
+            loadSavedScore(cardId);
+            
+            // 添加淡入动画
+            cardContainer.classList.add('fade-in');
+            setTimeout(() => {
+                cardContainer.classList.remove('fade-in');
+            }, 300);
         })
         .catch(error => {
-            console.error('加载卡片失败:', error);
-            console.error('尝试加载的URL:', cardUrl);
-            document.getElementById('current-card').innerHTML = `
-                <div class="error-message">
-                    <h3>加载卡片失败</h3>
-                    <p>无法加载卡片 ${cardId}，请确保卡片文件存在。</p>
-                    <p>路径: ${cardUrl}</p>
-                    <p>错误信息: ${error.message}</p>
-                </div>
-            `;
+            console.error('加载测试卡片出错:', error);
+            cardContainer.innerHTML = `<div class="error-message">加载测试卡片失败: ${cardId}</div>`;
         });
 }
 
-// 上一个卡片
-function prevCard() {
-    const cards = testData[currentLevel][currentDimension];
-    if (cards.length === 0) return;
+// 更新导航按钮状态
+function updateNavigationButtons() {
+    const prevButton = document.getElementById('prev-card');
+    const nextButton = document.getElementById('next-card');
+    const currentCards = testData[currentLevel][currentDimension];
     
-    currentCardIndex = (currentCardIndex - 1 + cards.length) % cards.length;
-    loadCard();
+    // 禁用/启用上一个按钮
+    prevButton.disabled = currentCardIndex === 0;
+    
+    // 禁用/启用下一个按钮
+    nextButton.disabled = currentCardIndex === currentCards.length - 1;
 }
 
-// 下一个卡片
-function nextCard() {
-    const cards = testData[currentLevel][currentDimension];
-    if (cards.length === 0) return;
-    
-    currentCardIndex = (currentCardIndex + 1) % cards.length;
-    loadCard();
+// 导航到上一个卡片
+function navigateToPrevCard() {
+    if (currentCardIndex > 0) {
+        currentCardIndex--;
+        loadTestCard();
+    }
+}
+
+// 导航到下一个卡片
+function navigateToNextCard() {
+    const currentCards = testData[currentLevel][currentDimension];
+    if (currentCardIndex < currentCards.length - 1) {
+        currentCardIndex++;
+        loadTestCard();
+    }
 }
 
 // 保存当前评分
 function saveCurrentScore() {
-    const cards = testData[currentLevel][currentDimension];
-    if (cards.length === 0) return;
-    
-    const cardId = cards[currentCardIndex];
     const selectedScore = document.querySelector('.score-buttons button.selected');
     const notes = document.getElementById('observation-notes').value;
+    const cardId = testData[currentLevel][currentDimension][currentCardIndex];
     
     if (!selectedScore) {
-        alert('请选择评分');
+        alert('请先选择一个评分!');
         return;
     }
     
     const score = parseInt(selectedScore.getAttribute('data-score'));
     
-    testResults[cardId] = {
+    // 保存评分
+    if (!testResults[currentLevel]) {
+        testResults[currentLevel] = {};
+    }
+    
+    testResults[currentLevel][cardId] = {
         score: score,
         notes: notes,
-        level: currentLevel,
         dimension: currentDimension
     };
     
     // 保存到本地存储
-    saveAllResults();
-    
-    alert('评分已保存');
-    
-    // 自动前进到下一卡片
-    nextCard();
-}
-
-// 保存所有测试结果到本地存储
-function saveAllResults() {
     localStorage.setItem('testResults', JSON.stringify(testResults));
-    console.log('测试结果已保存到本地存储');
+    
+    // 更新测试进度
+    updateTestProgress();
+    
+    // 提供保存成功的反馈
+    const saveButton = document.getElementById('save-score');
+    const originalText = saveButton.textContent;
+    saveButton.textContent = '已保存!';
+    saveButton.style.backgroundColor = '#2E7D32';
+    
+    setTimeout(() => {
+        saveButton.textContent = originalText;
+        saveButton.style.backgroundColor = '';
+    }, 1500);
+    
+    // 自动导航到下一个卡片、维度或级别
+    setTimeout(() => {
+        const currentCards = testData[currentLevel][currentDimension];
+        
+        // 如果当前维度还有下一个卡片，导航到下一个卡片
+        if (currentCardIndex < currentCards.length - 1) {
+            navigateToNextCard();
+        } 
+        // 如果当前维度的卡片已测试完，尝试切换到下一个维度
+        else {
+            const dimensions = Object.keys(testData[currentLevel]);
+            const currentDimensionIndex = dimensions.indexOf(currentDimension);
+            
+            // 如果还有下一个维度
+            if (currentDimensionIndex < dimensions.length - 1) {
+                // 切换到下一个维度的第一个卡片
+                currentDimension = dimensions[currentDimensionIndex + 1];
+                currentCardIndex = 0;
+                
+                // 更新UI
+                updateActiveDimensionNav();
+                loadTestCard();
+            } 
+            // 如果当前级别的所有维度都测试完了，尝试切换到下一个级别
+            else {
+                const levels = ["L1", "L2", "L3"];
+                const currentLevelIndex = levels.indexOf(currentLevel);
+                
+                // 如果还有下一个级别
+                if (currentLevelIndex < levels.length - 1) {
+                    // 切换到下一个级别的第一个维度的第一个卡片
+                    currentLevel = levels[currentLevelIndex + 1];
+                    currentDimension = Object.keys(testData[currentLevel])[0];
+                    currentCardIndex = 0;
+                    
+                    // 更新UI
+                    updateActiveLevelNav();
+                    updateDimensionNav();
+                    loadTestCard();
+                } 
+                // 如果所有级别都测试完了，显示结果页面
+                else {
+                    // 可选：自动显示结果页面
+                    // showResultsPage();
+                    
+                    // 或者提示用户已完成所有测试
+                    alert('恭喜！您已完成所有测试。可以点击"测试结果"查看详细报告。');
+                }
+            }
+        }
+    }, 500);
 }
 
-// 从本地存储加载测试结果
-function loadSavedResults() {
-    const saved = localStorage.getItem('testResults');
-    if (saved) {
-        try {
-            testResults = JSON.parse(saved);
-            console.log('从本地存储加载了测试结果');
-        } catch (e) {
-            console.error('解析保存的测试结果时出错:', e);
-            testResults = {};
+// 加载已保存的评分
+function loadSavedScore(cardId) {
+    // 重置评分UI
+    document.querySelectorAll('.score-buttons button').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    document.getElementById('observation-notes').value = '';
+    
+    // 检查是否有已保存的评分
+    if (testResults[currentLevel] && testResults[currentLevel][cardId]) {
+        const result = testResults[currentLevel][cardId];
+        
+        // 设置评分按钮
+        const scoreButton = document.querySelector(`.score-buttons button[data-score="${result.score}"]`);
+        if (scoreButton) {
+            scoreButton.classList.add('selected');
         }
+        
+        // 设置观察笔记
+        document.getElementById('observation-notes').value = result.notes || '';
+    }
+}
+
+// 加载保存的测试结果
+function loadSavedResults() {
+    const savedResults = localStorage.getItem('testResults');
+    if (savedResults) {
+        testResults = JSON.parse(savedResults);
+    }
+}
+
+// 更新测试进度
+function updateTestProgress() {
+    // 计算已完成的测试卡片数量
+    let completedCount = 0;
+    let totalCount = 0;
+    
+    // 计算当前级别的已完成和总数
+    Object.keys(testData[currentLevel]).forEach(dimension => {
+        testData[currentLevel][dimension].forEach(cardId => {
+            totalCount++;
+            if (testResults[currentLevel] && testResults[currentLevel][cardId]) {
+                completedCount++;
+            }
+        });
+    });
+    
+    // 更新进度条
+    const progressFill = document.getElementById('test-progress');
+    const progressText = document.getElementById('progress-text');
+    
+    if (progressFill && progressText) {
+        const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+        progressFill.style.width = `${progressPercent}%`;
+        progressText.textContent = `${completedCount}/${totalCount} 完成`;
     }
 }
 
 // 显示结果页面
 function showResultsPage() {
-    console.log('显示结果页面');
-    
-    // 切换显示
+    // 隐藏测试卡片容器，显示结果容器
     document.getElementById('test-card-container').style.display = 'none';
     document.getElementById('results-container').style.display = 'block';
     
-    // 更新导航状态
-    document.querySelectorAll('.level-nav a').forEach(l => l.classList.remove('active'));
+    // 隐藏维度导航面板
+    document.querySelector('.dimension-panel').style.display = 'none';
+    
+    // 更新结果页面
+    updateResultsPage();
+    
+    // 更新活动导航
+    document.querySelectorAll('.level-nav a').forEach(link => {
+        link.classList.remove('active');
+    });
     document.querySelector('.level-nav a[data-level="results"]').classList.add('active');
-    
-    // 更新维度评分
-    updateDimensionScores();
-    
-    // 更新级别进度
-    updateLevelProgress();
-    
-    // 更新详细记录表格
-    updateResultsTable();
 }
 
-// 更新维度评分卡片
-function updateDimensionScores() {
-    const dimensionScores = {};
-    let totalCards = 0;
+// 更新结果页面
+function updateResultsPage() {
+    // 设置测试对象名称和日期
+    document.getElementById('test-subject-display').textContent = testSubject;
+    document.getElementById('test-date').textContent = new Date().toLocaleDateString('zh-CN');
     
-    // 计算各维度平均分
-    for (const cardId in testResults) {
-        const result = testResults[cardId];
-        const dimension = result.dimension;
-        
-        if (!dimensionScores[dimension]) {
-            dimensionScores[dimension] = {total: 0, count: 0};
-        }
-        
-        dimensionScores[dimension].total += result.score;
-        dimensionScores[dimension].count++;
-        totalCards++;
-    }
+    // 清空维度评分容器
+    const dimensionScores = document.getElementById('dimension-scores');
+    dimensionScores.innerHTML = '';
     
-    // 生成评分卡片HTML
-    const dimensionScoresContainer = document.getElementById('dimension-scores');
-    dimensionScoresContainer.innerHTML = '';
+    // 清空结果表格
+    const resultsTable = document.getElementById('results-table').querySelector('tbody');
+    resultsTable.innerHTML = '';
     
-    for (const dim in dimensionScores) {
-        const avg = dimensionScores[dim].total / dimensionScores[dim].count;
-        const dimName = dimensionNames[dim] || dim;
-        
-        const scoreCard = document.createElement('div');
-        scoreCard.className = 'dimension-score-card';
-        scoreCard.innerHTML = `
-            <h4>${dimName}</h4>
-            <div class="score">${avg.toFixed(1)}</div>
-            <div class="score-label">平均分 (满分5分)</div>
-        `;
-        
-        dimensionScoresContainer.appendChild(scoreCard);
-    }
+    // 计算各级别的完成情况
+    const levelProgress = {
+        L1: { completed: 0, total: 0 },
+        L2: { completed: 0, total: 0 },
+        L3: { completed: 0, total: 0 }
+    };
     
-    // 如果没有评分数据
-    if (Object.keys(dimensionScores).length === 0) {
-        dimensionScoresContainer.innerHTML = '<p>暂无评分数据</p>';
-    }
-}
-
-// 更新级别进度条
-function updateLevelProgress() {
-    const levelScores = {L1: 0, L2: 0, L3: 0};
-    const levelCounts = {L1: 0, L2: 0, L3: 0};
+    // 计算维度平均分
+    const dimensionAverages = {};
     
-    // 计算各级别总分和卡片数
-    for (const level in testData) {
-        for (const dim in testData[level]) {
-            testData[level][dim].forEach(cardId => {
-                levelCounts[level]++;
-                if (testResults[cardId]) {
-                    levelScores[level] += testResults[cardId].score;
+    // 处理所有测试结果
+    Object.keys(testData).forEach(level => {
+        Object.keys(testData[level]).forEach(dimension => {
+            // 初始化维度平均分
+            if (!dimensionAverages[dimension]) {
+                dimensionAverages[dimension] = { sum: 0, count: 0 };
+            }
+            
+            testData[level][dimension].forEach(cardId => {
+                // 更新级别总数
+                levelProgress[level].total++;
+                
+                // 检查是否有评分
+                if (testResults[level] && testResults[level][cardId]) {
+                    // 更新级别已完成数
+                    levelProgress[level].completed++;
+                    
+                    // 更新维度平均分
+                    dimensionAverages[dimension].sum += testResults[level][cardId].score;
+                    dimensionAverages[dimension].count++;
+                    
+                    // 添加到结果表格
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${cardId}</td>
+                        <td>${testResults[level][cardId].score}</td>
+                        <td>${testResults[level][cardId].notes || '-'}</td>
+                    `;
+                    resultsTable.appendChild(tr);
                 }
             });
-        }
-    }
+        });
+    });
     
-    // 计算进度百分比
-    for (const level in levelCounts) {
-        if (levelCounts[level] === 0) continue;
-        
-        const maxScore = levelCounts[level] * 5; // 每张卡片满分5分
-        const percent = (levelScores[level] / maxScore) * 100;
+    // 创建维度评分卡片
+    Object.keys(dimensionAverages).forEach(dimension => {
+        if (dimensionAverages[dimension].count > 0) {
+            const average = (dimensionAverages[dimension].sum / dimensionAverages[dimension].count).toFixed(1);
+            
+            const dimensionCard = document.createElement('div');
+            dimensionCard.className = 'dimension-score-card';
+            dimensionCard.innerHTML = `
+                <div class="dimension-icon">
+                    <i class="fas ${dimensionIcons[dimension]}"></i>
+                </div>
+                <div class="dimension-info">
+                    <h4>${dimensionNames[dimension]}</h4>
+                    <div class="dimension-average">${average}</div>
+                </div>
+            `;
+            dimensionScores.appendChild(dimensionCard);
+        }
+    });
+    
+    // 更新级别进度条
+    Object.keys(levelProgress).forEach(level => {
+        const percent = levelProgress[level].total > 0 
+            ? Math.round((levelProgress[level].completed / levelProgress[level].total) * 100) 
+            : 0;
         
         document.getElementById(`${level.toLowerCase()}-progress-bar`).style.width = `${percent}%`;
-        document.getElementById(`${level.toLowerCase()}-progress-percent`).textContent = `${percent.toFixed(1)}%`;
-    }
+        document.getElementById(`${level.toLowerCase()}-progress-percent`).textContent = `${percent}%`;
+    });
 }
 
-// 更新详细结果表格
-function updateResultsTable() {
-    const tableBody = document.querySelector('#results-table tbody');
-    tableBody.innerHTML = '';
-    
-    // 按级别和维度排序
-    const sortedResults = Object.entries(testResults).sort((a, b) => {
-        const levelA = a[1].level;
-        const levelB = b[1].level;
-        
-        if (levelA !== levelB) {
-            return levelA.localeCompare(levelB);
-        }
-        
-        const dimA = a[1].dimension;
-        const dimB = b[1].dimension;
-        
-        if (dimA !== dimB) {
-            return dimA.localeCompare(dimB);
-        }
-        
-        return a[0].localeCompare(b[0]);
-    });
-    
-    // 生成表格行
-    sortedResults.forEach(([cardId, result]) => {
-        const row = document.createElement('tr');
-        
-        const idCell = document.createElement('td');
-        idCell.textContent = cardId;
-        
-        const scoreCell = document.createElement('td');
-        scoreCell.textContent = result.score;
-        
-        const notesCell = document.createElement('td');
-        notesCell.textContent = result.notes;
-        
-        row.appendChild(idCell);
-        row.appendChild(scoreCell);
-        row.appendChild(notesCell);
-        
-        tableBody.appendChild(row);
-    });
-    
-    // 如果没有评分数据
-    if (sortedResults.length === 0) {
-        const row = document.createElement('tr');
-        const cell = document.createElement('td');
-        cell.colSpan = 3;
-        cell.textContent = '暂无评分数据';
-        cell.style.textAlign = 'center';
-        row.appendChild(cell);
-        tableBody.appendChild(row);
-    }
-}
-
-// 导出测试报告
-function exportReport() {
-    console.log('导出测试报告');
-    
-    // 计算各维度平均分
-    const dimensionScores = {};
-    const levelScores = {L1: 0, L2: 0, L3: 0};
-    const levelCounts = {L1: 0, L2: 0, L3: 0};
-    let totalCards = 0;
-    
-    // 计算各级别总分和卡片数
-    for (const level in testData) {
-        for (const dim in testData[level]) {
-            testData[level][dim].forEach(cardId => {
-                levelCounts[level]++;
-                if (testResults[cardId]) {
-                    levelScores[level] += testResults[cardId].score;
-                }
-            });
-        }
-    }
-    
-    // 计算各维度平均分
-    for (const cardId in testResults) {
-        const result = testResults[cardId];
-        const dimension = result.dimension;
-        
-        if (!dimensionScores[dimension]) {
-            dimensionScores[dimension] = {total: 0, count: 0};
-        }
-        
-        dimensionScores[dimension].total += result.score;
-        dimensionScores[dimension].count++;
-        totalCards++;
-    }
-    
-    // 生成报告HTML
-    let reportHTML = `
-        <!DOCTYPE html>
-        <html lang="zh-CN">
+// 导出测试结果
+function exportResults() {
+    // 创建结果HTML
+    let resultsHTML = `
+        <html>
         <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>AI视觉能力测试报告</title>
             <style>
-                body {
-                    font-family: 'Microsoft YaHei', Arial, sans-serif;
-                    line-height: 1.6;
-                    color: #333;
-                    max-width: 800px;
-                    margin: 0 auto;
-                    padding: 20px;
-                }
-                h1, h2 {
-                    color: #2c3e50;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin: 20px 0;
-                }
-                th, td {
-                    padding: 10px;
-                    border: 1px solid #ddd;
-                    text-align: left;
-                }
-                th {
-                    background-color: #f5f5f5;
-                }
-                .progress-bar {
-                    height: 20px;
-                    background-color: #f1f1f1;
-                    border-radius: 10px;
-                    margin: 5px 0 15px;
-                    overflow: hidden;
-                }
-                .progress-bar-fill {
-                    height: 100%;
-                    background-color: #4CAF50;
-                    border-radius: 10px;
-                }
+                body { font-family: 'Microsoft YaHei', Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+                h1, h2, h3 { color: #1976D2; }
+                table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f5f5f5; }
+                .progress-bar { height: 20px; background-color: #f5f5f5; border-radius: 10px; overflow: hidden; margin: 5px 0; }
+                .progress-fill { height: 100%; background-color: #4CAF50; }
             </style>
         </head>
         <body>
             <h1>AI视觉能力测试报告</h1>
-            <p>测试日期: ${new Date().toLocaleDateString()}</p>
-            
-            <h2>维度评分</h2>
-            <ul>
-    `;
-    
-    for (const dim in dimensionScores) {
-        const avg = dimensionScores[dim].total / dimensionScores[dim].count;
-        const dimName = dimensionNames[dim] || dim;
-        reportHTML += `<li>${dimName}: ${avg.toFixed(1)}/5</li>`;
-    }
-    
-    reportHTML += `
-            </ul>
+            <p>测试对象: <strong>${testSubject}</strong></p>
+            <p>测试日期: ${new Date().toLocaleDateString('zh-CN')}</p>
             
             <h2>级别达成情况</h2>
     `;
     
-    for (const level in levelCounts) {
-        if (levelCounts[level] === 0) continue;
+    // 添加级别进度
+    Object.keys(testData).forEach(level => {
+        let completed = 0;
+        let total = 0;
         
-        const maxScore = levelCounts[level] * 5;
-        const percent = (levelScores[level] / maxScore) * 100;
+        Object.keys(testData[level]).forEach(dimension => {
+            testData[level][dimension].forEach(cardId => {
+                total++;
+                if (testResults[level] && testResults[level][cardId]) {
+                    completed++;
+                }
+            });
+        });
         
-        let levelName = '';
-        switch (level) {
-            case 'L1': levelName = '基础级'; break;
-            case 'L2': levelName = '进阶级'; break;
-            case 'L3': levelName = '高级'; break;
-        }
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
         
-        reportHTML += `
-            <p>${level} ${levelName}: ${percent.toFixed(1)}%</p>
+        resultsHTML += `
+            <h3>${level} ${level === 'L1' ? '基础级' : level === 'L2' ? '进阶级' : '高级'}</h3>
             <div class="progress-bar">
-                <div class="progress-bar-fill" style="width: ${percent}%"></div>
+                <div class="progress-fill" style="width: ${percent}%"></div>
             </div>
+            <p>${completed}/${total} 完成 (${percent}%)</p>
         `;
-    }
-    
-    reportHTML += `
-            <h2>详细测试记录</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>测试卡ID</th>
-                        <th>级别</th>
-                        <th>维度</th>
-                        <th>评分</th>
-                        <th>观察笔记</th>
-                    </tr>
-                </thead>
-                <tbody>
+    });
+
+    // 添加详细结果表格
+    resultsHTML += `
+        <h2>详细测试记录</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>测试卡ID</th>
+                    <th>评分</th>
+                    <th>观察笔记</th>
+                </tr>
+            </thead>
+            <tbody>
     `;
     
-    // 按级别和维度排序
-    const sortedResults = Object.entries(testResults).sort((a, b) => {
-        const levelA = a[1].level;
-        const levelB = b[1].level;
-        
-        if (levelA !== levelB) {
-            return levelA.localeCompare(levelB);
-        }
-        
-        const dimA = a[1].dimension;
-        const dimB = b[1].dimension;
-        
-        if (dimA !== dimB) {
-            return dimA.localeCompare(dimB);
-        }
-        
-        return a[0].localeCompare(b[0]);
+    // 添加所有已评分的测试卡
+    Object.keys(testResults).forEach(level => {
+        Object.keys(testResults[level]).forEach(cardId => {
+            resultsHTML += `
+                <tr>
+                    <td>${cardId}</td>
+                    <td>${testResults[level][cardId].score}</td>
+                    <td>${testResults[level][cardId].notes || '-'}</td>
+                </tr>
+            `;
+        });
     });
     
-    for (const [cardId, result] of sortedResults) {
-        const dimName = dimensionNames[result.dimension] || result.dimension;
-        
-        reportHTML += `
-            <tr>
-                <td>${cardId}</td>
-                <td>${result.level}</td>
-                <td>${dimName}</td>
-                <td>${result.score}</td>
-                <td>${result.notes}</td>
-            </tr>
-        `;
-    }
-    
-    reportHTML += `
-                </tbody>
-            </table>
-            
-            <h2>总结评价</h2>
-            <p>测试完成度: ${(totalCards / Object.values(testData).flatMap(level => Object.values(level).flat()).length * 100).toFixed(1)}%</p>
-            
-            <p>注：本报告由AI视觉能力分级标准化测试工具自动生成。</p>
+    resultsHTML += `
+            </tbody>
+        </table>
         </body>
         </html>
     `;
     
-    // 创建下载链接
-    const blob = new Blob([reportHTML], {type: 'text/html'});
+    // 创建Blob并下载
+    const blob = new Blob([resultsHTML], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
+    
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'AI视觉能力测试报告.html';
+    a.download = `AI视觉能力测试报告_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.html`;
+    document.body.appendChild(a);
     a.click();
     
-    // 释放URL对象
-    setTimeout(() => URL.revokeObjectURL(url), 100);
+    // 清理
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 100);
+}
+
+// 导出并重新开始测试
+function exportAndRestart() {
+    exportResults();
+    restartTest();
+}
+
+// 重新开始测试
+function restartTest() {
+    // 清空测试结果
+    testResults = {};
+    localStorage.removeItem('testResults');
+    
+    // 重置测试进度
+    updateTestProgress();
+    
+    // 切换到第一个级别和维度
+    currentLevel = "L1";
+    currentDimension = Object.keys(testData[currentLevel])[0];
+    currentCardIndex = 0;
+    
+    // 更新UI
+    updateActiveLevelNav();
+    updateDimensionNav();
+    loadTestCard();
+}
+
+// 切换侧边栏（移动端）
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('active');
 }
 
 // 页面加载完成后初始化

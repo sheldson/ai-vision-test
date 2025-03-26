@@ -2,6 +2,7 @@ import http.server
 import socketserver
 import os
 import time
+import sys
 
 class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -19,10 +20,14 @@ class NoCacheHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             print(f"请求: {self.path}")
         return super().do_GET()
 
-PORT = 8080
+PORT = 8090
 Handler = NoCacheHTTPRequestHandler
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print(f"服务器运行在 http://localhost:{PORT}")
-    print("添加了强制缓存控制，所有文件将从磁盘重新加载")
-    httpd.serve_forever()
+    print(f"\033[1;36m启动服务器在 http://localhost:{PORT}/\033[0m")
+    print("\033[1;33m按 Ctrl+C 终止服务器\033[0m")
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\n\033[1;31m服务器已停止\033[0m")
+        sys.exit(0)
