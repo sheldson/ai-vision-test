@@ -88,14 +88,25 @@ function showWelcomeModal() {
     // 输入框获取焦点
     subjectInput.focus();
     
+    // 清除之前的事件监听器（通过克隆和替换元素）
+    const newSubjectInput = subjectInput.cloneNode(true);
+    subjectInput.parentNode.replaceChild(newSubjectInput, subjectInput);
+    
+    const newStartButton = startButton.cloneNode(true);
+    startButton.parentNode.replaceChild(newStartButton, startButton);
+    
+    // 重新获取元素引用
+    const refreshedSubjectInput = document.getElementById('test-subject');
+    const refreshedStartButton = document.getElementById('start-test-btn');
+    
     // 检查输入并启用/禁用开始按钮
-    subjectInput.addEventListener('input', function() {
-        startButton.disabled = !this.value.trim();
+    refreshedSubjectInput.addEventListener('input', function() {
+        refreshedStartButton.disabled = !this.value.trim();
     });
     
     // 开始按钮点击事件
-    startButton.addEventListener('click', function() {
-        const subject = subjectInput.value.trim();
+    refreshedStartButton.addEventListener('click', function() {
+        const subject = refreshedSubjectInput.value.trim();
         if (subject) {
             // 保存测试对象名称
             testSubject = subject;
@@ -112,9 +123,9 @@ function showWelcomeModal() {
     });
     
     // 回车键提交
-    subjectInput.addEventListener('keypress', function(e) {
+    refreshedSubjectInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter' && this.value.trim()) {
-            startButton.click();
+            refreshedStartButton.click();
         }
     });
 }
@@ -719,6 +730,10 @@ function restartTest() {
     testResults = {};
     localStorage.removeItem('testResults');
     
+    // 清空测试对象名称
+    testSubject = "";
+    localStorage.removeItem('testSubject');
+    
     // 重置测试进度
     updateTestProgress();
     
@@ -729,8 +744,9 @@ function restartTest() {
     
     // 更新UI
     updateActiveLevelNav();
-    updateDimensionNav();
-    loadTestCard();
+    
+    // 显示欢迎对话框
+    showWelcomeModal();
 }
 
 // 切换侧边栏（移动端）
