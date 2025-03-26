@@ -52,14 +52,14 @@ let testSubject = ""; // 测试对象名称
 function init() {
     console.log("初始化测试工具...");
     
+    // 检查是否已有测试对象名称
+    testSubject = localStorage.getItem('testSubject') || "";
+    
     // 加载保存的测试结果
     loadSavedResults();
     
     // 设置事件监听器
     setupEventListeners();
-    
-    // 检查是否已有测试对象名称
-    testSubject = localStorage.getItem('testSubject') || "";
     
     // 如果没有测试对象名称，显示欢迎对话框
     if (!testSubject) {
@@ -80,7 +80,10 @@ function init() {
 function showWelcomeModal() {
     const modal = document.getElementById('welcome-modal');
     const startButton = document.getElementById('start-test-btn');
+    const continueButton = document.getElementById('continue-test-btn');
     const subjectInput = document.getElementById('test-subject');
+    const existingTests = document.getElementById('existing-tests');
+    const testSubjectsList = document.getElementById('test-subjects-list');
     
     // 显示模态框
     modal.style.display = 'flex';
@@ -95,22 +98,61 @@ function showWelcomeModal() {
     const newStartButton = startButton.cloneNode(true);
     startButton.parentNode.replaceChild(newStartButton, startButton);
     
+    const newContinueButton = continueButton.cloneNode(true);
+    continueButton.parentNode.replaceChild(newContinueButton, continueButton);
+    
     // 重新获取元素引用
     const refreshedSubjectInput = document.getElementById('test-subject');
     const refreshedStartButton = document.getElementById('start-test-btn');
+    const refreshedContinueButton = document.getElementById('continue-test-btn');
+    
+    // 检查是否有已存在的测试对象
+    try {
+        const allResults = JSON.parse(localStorage.getItem('allTestResults')) || {};
+        const existingSubjects = Object.keys(allResults);
+        
+        if (existingSubjects.length > 0) {
+            // 显示继续按钮和已有测试列表
+            refreshedContinueButton.style.display = 'block';
+            existingTests.style.display = 'block';
+            
+            // 清空并重新填充测试对象列表
+            testSubjectsList.innerHTML = '';
+            existingSubjects.forEach(subject => {
+                const li = document.createElement('li');
+                li.textContent = subject;
+                li.addEventListener('click', function() {
+                    refreshedSubjectInput.value = subject;
+                    refreshedStartButton.disabled = false;
+                });
+                testSubjectsList.appendChild(li);
+            });
+        } else {
+            refreshedContinueButton.style.display = 'none';
+            existingTests.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('获取已有测试对象时出错:', error);
+        refreshedContinueButton.style.display = 'none';
+        existingTests.style.display = 'none';
+    }
     
     // 检查输入并启用/禁用开始按钮
     refreshedSubjectInput.addEventListener('input', function() {
         refreshedStartButton.disabled = !this.value.trim();
     });
     
-    // 开始按钮点击事件
+    // 开始新测试按钮点击事件
     refreshedStartButton.addEventListener('click', function() {
         const subject = refreshedSubjectInput.value.trim();
         if (subject) {
             // 保存测试对象名称
             testSubject = subject;
             localStorage.setItem('testSubject', subject);
+            
+            // 清空当前测试结果（如果是已存在的测试对象，则会重新开始）
+            testResults = {};
+            saveTestResults();
             
             // 隐藏模态框
             modal.style.display = 'none';
@@ -121,6 +163,29 @@ function showWelcomeModal() {
             updateTestProgress();
         }
     });
+    
+    // 继续测试按钮点击事件
+    refreshedContinueButton.addEventListener('click', function() {
+        const subject = refreshedSubjectInput.value.trim();
+        if (subject) {
+            // 保存测试对象名称
+            testSubject = subject;
+            localStorage.setItem('testSubject', subject);
+            
+            // 加载该测试对象的结果
+            loadSavedResults();
+            
+            // 隐藏模态框
+            modal.style.display = 'none';
+            
+            // 初始化测试
+            updateDimensionNav();
+            loadTestCard();
+            updateTestProgress();
+        }
+    });
+    
+    // 测试对象列表项点击事件（在上面已添加）
     
     // 回车键提交
     refreshedSubjectInput.addEventListener('keypress', function(e) {
@@ -382,7 +447,7 @@ function saveCurrentScore() {
     };
     
     // 保存到本地存储
-    localStorage.setItem('testResults', JSON.stringify(testResults));
+    saveTestResults();
     
     // 更新测试进度
     updateTestProgress();
@@ -476,9 +541,35 @@ function loadSavedScore(cardId) {
 
 // 加载保存的测试结果
 function loadSavedResults() {
-    const savedResults = localStorage.getItem('testResults');
-    if (savedResults) {
-        testResults = JSON.parse(savedResults);
+    try {
+        // 获取所有测试结果
+        const allResults = JSON.parse(localStorage.getItem('allTestResults')) || {};
+        
+        // 如果当前测试对象有保存的结果，则加载它
+        if (testSubject && allResults[testSubject]) {
+            testResults = allResults[testSubject];
+        } else {
+            testResults = {};
+        }
+    } catch (error) {
+        console.error('加载保存的测试结果时出错:', error);
+        testResults = {};
+    }
+}
+
+// 保存测试结果
+function saveTestResults() {
+    try {
+        // 获取所有测试结果
+        const allResults = JSON.parse(localStorage.getItem('allTestResults')) || {};
+        
+        // 更新当前测试对象的结果
+        if (testSubject) {
+            allResults[testSubject] = testResults;
+            localStorage.setItem('allTestResults', JSON.stringify(allResults));
+        }
+    } catch (error) {
+        console.error('保存测试结果时出错:', error);
     }
 }
 
@@ -726,9 +817,21 @@ function exportAndRestart() {
 
 // 重新开始测试
 function restartTest() {
-    // 清空测试结果
+    // 清空当前测试结果
     testResults = {};
-    localStorage.removeItem('testResults');
+    
+    // 如果有当前测试对象，从allTestResults中移除它的结果
+    if (testSubject) {
+        try {
+            const allResults = JSON.parse(localStorage.getItem('allTestResults')) || {};
+            if (allResults[testSubject]) {
+                delete allResults[testSubject];
+                localStorage.setItem('allTestResults', JSON.stringify(allResults));
+            }
+        } catch (error) {
+            console.error('清除测试结果时出错:', error);
+        }
+    }
     
     // 清空测试对象名称
     testSubject = "";

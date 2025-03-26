@@ -178,15 +178,21 @@
     </div>
 
     <!-- 欢迎对话框 -->
-    <div class="welcome-modal" id="welcome-modal">
+    <div id="welcome-modal" class="welcome-modal">
         <div class="welcome-content">
             <h2>欢迎使用AI视觉能力测试工具</h2>
-            <p>请输入本次测试的对象名称以开始测试：</p>
+            <p>请输入测试对象名称以开始测试</p>
             <div class="input-group">
-                <label for="test-subject">测试对象名称：</label>
-                <input type="text" id="test-subject" placeholder="例如：GPT-4V、Claude 3、Gemini Pro等">
+                <input type="text" id="test-subject" placeholder="例如：GPT-4V">
             </div>
-            <button id="start-test-btn" class="primary-btn">开始测试</button>
+            <div class="welcome-buttons">
+                <button id="start-test-btn" class="btn-primary" disabled>开始新测试</button>
+                <button id="continue-test-btn" class="btn-secondary" style="display: none;">继续之前测试</button>
+            </div>
+            <div id="existing-tests" class="existing-tests" style="display: none;">
+                <h3>已有测试对象</h3>
+                <ul id="test-subjects-list"></ul>
+            </div>
         </div>
     </div>
 
