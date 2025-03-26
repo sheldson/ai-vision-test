@@ -1,0 +1,19 @@
+# 测试和调试文件
+test.html
+test_index.html
+test_case.md
+refactoring_plan.md
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 临时文件
+*.log
+*.tmp
