@@ -17,3 +17,8 @@ Thumbs.db
 # 临时文件
 *.log
 *.tmp
+
+# 导出的测试报告
+*能力测试报告*.html
+*视觉能力测试报告*.html
+AI*测试报告*.html
